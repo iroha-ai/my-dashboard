@@ -105,8 +105,7 @@ async function fetchWeeklyOpenMeteo(city) {
   }));
 }
 
-function renderWeeklyAlerts(warningCodes) {
-  const node = document.getElementById('akishima-alerts');
+function renderWeeklyAlerts(node, warningCodes) {
   clear(node);
   if (!warningCodes?.length) return;
 
@@ -153,17 +152,19 @@ function renderWeeklyDay(day, isToday) {
   return li;
 }
 
-async function updateWeeklyAkishima(onStatus) {
-  const list = document.getElementById('weekly-weather-list');
-  const city = CONFIG.weeklyWeatherCity;
+async function updateWeeklyCity(city, onStatus) {
+  const statusKey = `weekly-${city.domId}`;
+  const list = document.getElementById(`${city.domId}-weekly-list`);
+  const alertsNode = document.getElementById(`${city.domId}-alerts`);
+  if (!list) return; // index.html 側に対応する要素が無ければ何もしない
 
   let days;
   try {
     days = await fetchWeeklyOpenMeteo(city);
   } catch (err) {
-    console.error('週間天気の取得に失敗', err);
+    console.error(`週間天気の取得に失敗（${city.name}）`, err);
     showMessage(list, '週間天気を取得できませんでした', true);
-    onStatus?.('weekly', '週間天気の取得に失敗', true);
+    onStatus?.(statusKey, `${city.name}の週間天気の取得に失敗`, true);
     return;
   }
 
@@ -183,7 +184,7 @@ async function updateWeeklyAkishima(onStatus) {
       });
     }
   } catch (err) {
-    console.error('気象庁週間予報の取得に失敗', err);
+    console.error(`気象庁週間予報の取得に失敗（${city.name}）`, err);
   }
 
   days = days.map((day) => ({
@@ -192,7 +193,9 @@ async function updateWeeklyAkishima(onStatus) {
   }));
 
   const warnings = await fetchWarnings([city]).catch(() => new Map());
-  renderWeeklyAlerts(warnings.get(`${city.prefecture}:${city.warningArea}`));
+  if (alertsNode) {
+    renderWeeklyAlerts(alertsNode, warnings.get(`${city.prefecture}:${city.warningArea}`));
+  }
 
   const todayKey = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}-${pad2(
     new Date().getDate()
@@ -202,7 +205,7 @@ async function updateWeeklyAkishima(onStatus) {
     list.appendChild(renderWeeklyDay(day, day.date === todayKey));
   }
 
-  onStatus?.('weekly', null, false);
+  onStatus?.(statusKey, null, false);
 }
 
 async function fetchTemperatures(cities) {
@@ -318,7 +321,9 @@ function renderCard(city, temp, forecastText, warningCodes) {
 }
 
 export async function updateWeather(onStatus) {
-  await updateWeeklyAkishima(onStatus);
+  await Promise.all(
+    CONFIG.weeklyWeatherCities.map((city) => updateWeeklyCity(city, onStatus))
+  );
 
   const row = document.getElementById('weather-row');
   const cities = CONFIG.cities;

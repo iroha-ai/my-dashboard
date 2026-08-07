@@ -66,14 +66,28 @@ export const CONFIG = {
   // 一週間の予定を何日先まで出すか。
   weekDays: 7,
 
-  // 左サイドバーに出す週間天気の地点（昭島市）。
-  weeklyWeatherCity: {
-    name: '昭島市',
-    lat: 35.7056,
-    lon: 139.3536,
-    prefecture: '130000',
-    forecastArea: '130010',
-    warningArea: '1320700',
-    days: 7,
-  },
+  // 左サイドバーに出す週間天気の地点（上から順に表示）。
+  // domId は index.html 側の要素ID（`${domId}-alerts` / `${domId}-weekly-list`）と対応させる。
+  weeklyWeatherCities: [
+    {
+      domId: 'akishima',
+      name: '昭島市',
+      lat: 35.7056,
+      lon: 139.3536,
+      prefecture: '130000',
+      forecastArea: '130010',
+      warningArea: '1320700',
+      days: 7,
+    },
+    {
+      domId: 'kanuma',
+      name: '鹿沼市',
+      lat: 36.5670,
+      lon: 139.7450,
+      prefecture: '090000',
+      forecastArea: '090010',
+      warningArea: '0920500',
+      days: 7,
+    },
+  ],
 };
