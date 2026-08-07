@@ -260,10 +260,16 @@ export async function updateCalendar(onStatus) {
 
     // 黙って取り直せなかったときは、押せば繋ぎ直せる状態にしておく。
     requestSignIn = async () => {
-      const token = await getAccessToken({ interactive: true });
-      renderAll(await fetchEvents(token, from, to));
-      onStatus?.('calendar', null, false);
-      requestSignIn = null;
+      try {
+        const token = await getAccessToken({ interactive: true });
+        renderAll(await fetchEvents(token, from, to));
+        onStatus?.('calendar', null, false);
+        requestSignIn = null;
+      } catch (retryErr) {
+        // ポップアップを閉じた・許可しなかった等。押し直せる状態のまま、理由だけ出す。
+        console.error('カレンダーへの接続に失敗', retryErr);
+        onStatus?.('calendar', 'カレンダーへの接続に失敗しました', true, requestSignIn);
+      }
     };
     showCalendarMessage('カレンダーに接続できていません', true);
     onStatus?.('calendar', 'カレンダー未接続', true, requestSignIn);
