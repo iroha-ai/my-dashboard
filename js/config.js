@@ -14,13 +14,10 @@ export const CONFIG = {
   // 読みたいカレンダー。'primary' は自分のメインカレンダー。
   calendarIds: ['primary'],
 
-  // 運行情報。ライブ取得はできなかったため、公式ページへの直接リンクにしている
-  // （tetsudo.rti-giken.jp が実装時点で疎通不可だったため。README参照）。
-  trainLinks: [
-    { label: '中央線', url: 'https://traininfo.jreast.co.jp/train_info/service.aspx' },
-    { label: '青梅線', url: 'https://traininfo.jreast.co.jp/train_info/service.aspx' },
-    { label: '銀座線', url: 'https://www.tokyometro.jp/index.html#UnkouLinesList' },
-  ],
+  // 運行情報JSONの取得先。data ブランチ・raw経由（相場JSONと同じ考え方）。
+  // 内容は各路線の「平常運転かどうか」だけ。リンク自体は index.html に直書き。
+  trainDataUrl:
+    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train.json',
 
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。
@@ -56,6 +53,7 @@ export const CONFIG = {
   intervals: {
     calendar: 5 * 60 * 1000,
     weather: 30 * 60 * 1000,
+    train: 5 * 60 * 1000,
   },
 
   // 来客・外出として拾うタイトルのキーワード（部分一致）。

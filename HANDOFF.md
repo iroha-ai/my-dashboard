@@ -1,7 +1,7 @@
 # my-dashboard 開発引き継ぎ（Claude Code 向け）
 
 作成日: 2026-08-07
-最終更新: 2026-08-07（相場をTradingViewウィジェットに一本化・cron撤去後）
+最終更新: 2026-08-07（運行情報をライブ検知に復活・リンク色分けを追加）
 
 ## これは何か
 
@@ -22,20 +22,21 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 | 有効化済みAPI | Google Calendar API、Google Tasks API |
 | OAuth クライアント | 発行済み（`js/config.js` の `googleClientId`）。テストユーザーに Hide のアカウント登録済み |
 | OAuthスコープ | `calendar.readonly` + `tasks.readonly` |
-| GitHub Actions | **無し。** 相場のcronは撤去済み（下記「相場をTradingViewウィジェットに一本化」参照） |
-| GitHub Secrets | **無し。** `TWELVEDATA_API_KEY` は不要になったため削除済み |
+| GitHub Actions | `運行情報の更新`（5分ごと cron + 手動実行）、`data` ブランチへ orphan 上書き。相場用cronは撤去済み |
+| GitHub Secrets | **無し。**（`TWELVEDATA_API_KEY` は不要になり削除済み。運行情報の取得元もキー不要） |
 
 ローカルの作業コピーは `C:\Users\youtr\dev\my-dashboard`（このリポジトリの clone）。
 
 ## 技術スタック
 
-- ビルドなし。素の HTML / CSS / ES modules。GitHub Actionsもcronも一切無い（完全に静的）
+- ビルドなし。素の HTML / CSS / ES modules
 - ホスティング: GitHub Pages（静的）
 - 予定: Google Calendar API + フロント OAuth（`js/config.js` の `googleClientId`）
 - タスク（来客・外出の右隣）: Google Tasks API（`@default`リストの、今日が期限のものだけ）。予定と同じトークンを使い回す
 - 天気（上段3地点）: 気象庁防災 JSON + Open-Meteo
 - 天気（左サイド週間・昭島/鹿沼の2地点）: Open-Meteo 7日 + 気象庁週間予報で降水確率補完
-- 運行情報（左サイド・週間天気の下）: **ライブ取得なし。** JR東日本・東京メトロの公式ページへの直接リンク
+- 運行情報（左サイド・週間天気の下）: リンクは公式ページへの直リンク。GitHub Actionsが
+  5分ごとに「平常運転かどうか」だけ取得し、異常があるときだけリンクの色を変える
 - 相場（ドル円・日経平均・XRP・XLM・金・銀の全6銘柄）: **TradingViewウィジェット埋め込み**
   （`embed-widget-single-quote.js`）。`index.html` に直書き、`realtime-charts` と同じ仕組み
 
@@ -50,41 +51,55 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 │ 鹿沼市   │来客・│タスク│ 今日の予定（広め） │ （widget×6）  │
 │ 週間天気 │外出  │      │                  │               │
 │ 運行情報 ├──────┴──────┴────────────────┤  チャートへ   │
-│（リンク）│  これからの一週間              │               │
+│（リンク  │  これからの一週間              │               │
+│ ＋色分け）│                                │               │
 └──────────┴──────────────────────────────┴───────────────┘
 ```
 
 来客・外出／タスクは**今日ぶんだけ**表示する（一週間分は「これからの一週間」欄で見られる）。
 
-## 相場をTradingViewウィジェットに一本化（2026-08-07）
+## 運行情報をライブ検知に復活（2026-08-07）
 
-**きっかけ:** Hideから「相場の元データ、日経平均のデータと同じところから参照してほしい」との指示。
+**きっかけ:** Hideから「事故情報はプッシュ型で欲しい。アラートを受信したら、当該路線の
+リンクの色を変えるだけでもいい。事故があったとわかればリンクを押して確認しにいけばいい」
+との要望。
 
-**変更前の構成（撤去済み）:**
+**それまでの状態:** `tetsudo.rti-giken.jp`（非公式API）が疎通不可だったため、静的リンクの
+みにしていた（下記「静的リンクにしていた経緯（過去の記録）」参照）。
 
-- GitHub Actions cron（5分ごと）が `scripts/fetch-market.mjs` を実行
-  - ドル円: Twelve Data（要APIキー）→ 無ければ Frankfurter 前日終値
-  - XRP・XLM: CoinGecko（キー不要）
-  - 金・銀: gold-api.com（キー不要）
-  - 日経平均: 元々 Twelve Data 対応外で「未取得」表示 → 後に個別でTradingViewウィジェット化
-- 取得結果を `data` ブランチへ orphan コミットで上書き
-- フロントは `raw.githubusercontent.com/.../data/market.json` を5分ごとに読む
+**新しく見つけたデータ源（公式サイトが自分自身の表示に使っている内部データ）:**
 
-**変更後の構成:**
+- **中央線・青梅線（JR東日本）:** `https://traininfo.jreast.co.jp/train_info/kanto.aspx`
+  のHTMLを解析する。`<span class="traininfo-routes__name">中央線快速電車</span>` の直後に
+  `<p class="traininfo-routes__status normal または delay 等"><span>状態文言</span></p>`
+  という規則的な構造がある。`normal` クラスなら平常運転、それ以外なら何かしら異常。
+- **銀座線（東京メトロ）:** `https://www.tokyometro.jp/library/common/operation/status.json`
+  （JSONP、`operate_status_cb_func(...)` でラップされている）。トップページの運行状況表示が
+  内部で読んでいるものと同じ。`jp.lines[].name_alpha === 'ginza'` の
+  `status_icon`（`"heijou"` なら平常）と `status_info` を見る。
 
-- 6銘柄すべて `index.html` に直書きしたTradingViewウィジェット（`embed-widget-single-quote.js`）
-- ウィジェット自身がリアルタイム更新するため、取得処理・cron・鮮度チェックが一切不要に
-- `realtime-charts`（`https://iroha-ai.github.io/realtime-charts/`）と同じシンボルを使用
+どちらも、この実装時点（2026-08-07）で実際に発生していた東京駅での人身事故による
+遅延（中央線快速・中央本線・青梅線）を正しく検知できることを確認済み。
 
-**削除したもの:** `js/market.js`、`scripts/fetch-market.mjs`、`data/market.json`、
-`.github/workflows/market.yml`、GitHub Secrets の `TWELVEDATA_API_KEY`。
-`config.js` から `marketDataUrl` / `chartUrl` / `intervals.market` を削除。
+**⚠️ 重要（利用規約）:** JR東日本の運行情報ページ末尾には
+「このページの情報を無断転載、複写または電磁媒体等に加工することを禁じます。」との
+記載がある。Hideに提示のうえ、**個人利用・非公開的な用途（社内モニター表示、平常/異常の
+色分けだけを抽出、詳しい文言は表示しない）の範囲と割り切って実装している**（2026-08-07、
+了承済み）。もし問題を指摘された場合は、`js/main.js` から `updateTrain` の呼び出しを外せば
+即座にライブ検知を止め、静的リンクのみの表示に戻せる（`.github/workflows/train.yml` も
+無効化すること）。
 
-**トレードオフ:** TradingViewウィジェットは要インターネット接続で、読み込み失敗時も
-画面右上のステータス表示の対象外（気づきにくい）。以前の `market.json` 方式にあった
-「取得失敗を明示・最終更新時刻の鮮度チェック」は無くなった。ただし、そもそも旧方式も
-GitHub Actionsのcron間隔がGitHub側で保証されず、頻繁に「相場データが更新されていません」
-警告が出て運用上の摩擦になっていたため、トータルではシンプルさを優先した判断。
+**実装:**
+
+- `scripts/fetch-train.mjs`: 上記2つのデータ源を取得し、`{id, label, ok, isNormal, status}`
+  の配列を `train.json` として出力。1つの路線の取得に失敗しても他を巻き添えにしない
+- `.github/workflows/train.yml`: 5分ごとのcronで実行し、`data` ブランチへ orphan 上書き
+  （`market.yml` と同じパターン。ただし今は運行情報専用のワークフロー）
+- `js/train.js`: `train.json` を読み、`.train-link[data-line="chuo|ome|ginza"]` の
+  クラスを `is-normal` / `is-trouble` に切り替えるだけ。**詳しい文言は画面に出さない**
+  （Hideの要望どおり、色だけ）
+- 取得できなかった・データが古い（20分以上更新なし）ときは、**色を変えずそのまま**にする
+  （「取れない＝平常運転」と決めつけない、という既存の設計方針を踏襲）
 
 ## Googleサインインが「毎回クリックが必要」な件（2026-08-07 判明）
 
@@ -125,24 +140,21 @@ Cloud Consoleの製品詳細ページに出る青いチェックマークは**�
 変わっているか、または「API とサービス」→「有効な API とサービス」の一覧に実際に
 出ているかで確認すること（「有効にする」ボタンがまだ表示されている＝未有効）。
 
-## 運行情報がリンク表示になっている経緯
+## 静的リンクにしていた経緯（過去の記録）
 
 `tetsudo.rti-giken.jp/free/train_all.json`（非公式・無料の鉄道運行情報API）でライブ取得する
-実装を最初に作った（`scripts/fetch-train.mjs` + `js/train.js` + Actionsでの`train.json`生成、
-いずれも削除済み）。
-
-実装時点（2026-08-07）で、次の**3つの独立したネットワークすべて**からこのAPIに疎通できなかった:
+実装を最初に作ったが、実装時点（2026-08-07）で、次の**3つの独立したネットワークすべて**から
+このAPIに疎通できなかった:
 
 1. Claude Code の作業サンドボックス（`curl` がタイムアウト）
 2. Hide の実際のブラウザ（Chrome、ページ自体がエラー表示）
 3. GitHub Actions のランナー（`fetch failed`）
 
-3経路とも同じ結果だったため、特定ネットワークのブロックではなく**サービス自体が停止・終了して
-いる可能性が高い**と判断し、ライブ取得の実装を撤回した。代わりに `js/config.js` の `trainLinks`
-と `index.html` に、JR東日本・東京メトロの公式運行情報ページへの直接リンクを静的に書いている。
-
-もし別の無料APIが見つかった場合、または `tetsudo.rti-giken.jp` が復活しているのを確認できた場合は、
-ライブ取得に戻す余地がある。その際は `git log` で当時の実装（コミット `bfd59dd` 付近）を参照できる。
+3経路とも同じ結果だったため、サービス自体が停止・終了している可能性が高いと判断し、
+いったんライブ取得の実装を撤回し静的リンクのみにした。その後、同日中にHideから
+「アラートが欲しい」との要望があり、JR東日本・東京メトロ自身の内部データを直接読む
+方式（上記「運行情報をライブ検知に復活」）で再実装した。`tetsudo.rti-giken.jp`は
+結局使っていない。
 
 ## 相場ウィジェットのシンボル一覧
 
@@ -161,31 +173,36 @@ Cloud Consoleの製品詳細ページに出る青いチェックマークは**�
 
 ```
 my-dashboard/
-├── index.html               # 画面骨格。運行情報リンク・相場ウィジェットもここに直書き
-├── css/styles.css           # 暗色テーマ・レイアウト
+├── index.html                    # 画面骨格。運行情報リンク・相場ウィジェットもここに直書き
+├── css/styles.css                # 暗色テーマ・レイアウト
 ├── js/
-│   ├── config.js            # ★ Hide が編集する設定（OAuth ID、trainLinks 等）
-│   ├── main.js               # 起動・定期更新・ステータスバー
-│   ├── clock.js              # ヘッダー時計（秒あり。ローカルタイムゾーン依存、README参照）
-│   ├── weather.js            # 上段3地点天気 + 左週間天気（昭島・鹿沼）
-│   ├── calendar.js           # Google Calendar・来客/外出ピックアップ・トークン管理
-│   ├── tasks.js              # Google Tasks 読み込み（calendar.jsのトークンを流用）
-│   ├── demo-events.js        # ?demo=1 用サンプル予定・タスク
+│   ├── config.js                 # ★ Hide が編集する設定（OAuth ID、trainDataUrl 等）
+│   ├── main.js                    # 起動・定期更新・ステータスバー
+│   ├── clock.js                   # ヘッダー時計（秒あり。ローカルタイムゾーン依存、README参照）
+│   ├── weather.js                 # 上段3地点天気 + 左週間天気（昭島・鹿沼）
+│   ├── calendar.js                # Google Calendar・来客/外出ピックアップ・トークン管理
+│   ├── tasks.js                   # Google Tasks 読み込み（calendar.jsのトークンを流用）
+│   ├── train.js                   # 運行情報：リンクの色分けだけ行う
+│   ├── demo-events.js             # ?demo=1 用サンプル予定・タスク
 │   └── util.js
-├── README.md                 # セットアップ手順
-└── HANDOFF.md                 # このファイル
+├── scripts/fetch-train.mjs       # Actions / 手動実行用の運行情報取得
+├── .github/workflows/train.yml   # 「運行情報の更新」ワークフロー（5分ごと）
+├── README.md                      # セットアップ手順
+└── HANDOFF.md                      # このファイル
 ```
 
-`.github/`・`scripts/`・`data/`・`js/market.js` は2026-08-07に削除済み（相場のcron撤去にともなう）。
+相場のcron関連（`scripts/fetch-market.mjs`、`js/market.js`、`data/`、
+`.github/workflows/market.yml`）は2026-08-07に削除済み（TradingViewウィジェット化にともなう）。
 
 ## ローカルで動かす
 
 ```bash
 cd my-dashboard
+node scripts/fetch-train.mjs   # 動作確認したいとき（標準出力にJSONが出る）
 python3 -m http.server 8000
 ```
 
-- **デモ（認証不要）:** `http://localhost:8000/?demo=1`（天気・相場ウィジェットは本物、予定・タスクはサンプル）
+- **デモ（認証不要）:** `http://localhost:8000/?demo=1`（天気・相場ウィジェット・運行情報は本物、予定・タスクはサンプル）
 - **本番同等:** `?demo=1` なし + `config.js` に Google クライアント ID（設定済み）
 
 ## 実装済み
@@ -199,7 +216,7 @@ python3 -m http.server 8000
 - [x] タスク（Google Tasks・今日ぶんだけ）
 - [x] 今日の予定（広め）・これからの一週間
 - [x] 相場6銘柄（TradingViewウィジェット） + チャートリンク
-- [x] 運行情報（中央線・青梅線・銀座線への公式ページリンク）
+- [x] 運行情報（中央線・青梅線・銀座線）：リンク＋5分ごとの色分け
 - [x] `?demo=1` デモモード
 - [x] 取得失敗時のステータス表示（ヘッダー右）
 - [x] 本番デプロイ（公開リポジトリ・Pages・OAuth）
@@ -212,12 +229,13 @@ python3 -m http.server 8000
 （電源を入れ直した時に一回押すだけ）が、要件定義の「常時表示で放置」からは
 少しずれている。時間があるときに原因を調べる。
 
-### 2. 運行情報のライブ化（任意・優先度低）
+### 2. 運行情報のスクレイピング先の安定性（優先度中・要監視）
 
-上記の経緯により静的リンクにしている。ライブ化したい場合は、東京メトロ（銀座線）分だけでも
-公式Open Data（[ODPT](https://developer.odpt.org/)、無料登録要）に切り替える案がある。
-JR東日本（中央線・青梅線）分は公式の無料APIが見当たらないため、この路線はリンクのままになる
-可能性が高い。
+JR東日本・東京メトロの内部HTML/JSON構造に依存しているため、サイトリニューアルで
+いつ壊れてもおかしくない。壊れた場合は `scripts/fetch-train.mjs` の
+`parseJreastLine` / `fetchMetroGinza` のパース部分を実際のHTML/JSON構造に
+合わせて直す。壊れても各路線は`ok: false`になるだけで、リンクの色が変わらなくなる
+（＝害はないが気づきにくい）点は把握しておくこと。
 
 ### 3. 時計のタイムゾーン（優先度低）
 
@@ -235,7 +253,7 @@ PC設定に依存せず安全（Hideから「確実にJSTにしたい」とい�
 
 作業例:
 
-- 「銀座線だけODPTでライブ化して」
+- 「運行情報のパースが壊れてないか確認して」
 - 「週間天気の天気ラベルを気象庁の週間 weatherCode に合わせて改善して」
 - 「時計を確実に日本時間にして」
 - 「相場ウィジェットに別の銘柄を追加して」（Hide の指示があれば）
@@ -243,7 +261,8 @@ PC設定に依存せず安全（Hideから「確実にJSTにしたい」とい�
 ## 注意（公開リポジトリ）
 
 - **予定・タスクの中身はリポジトリにコミットしない**（ブラウザ OAuth のみ）
-- APIキー・Secretsは現状不要（TradingViewウィジェットもGoogle OAuthもキー不要）
+- cron がコミットするのは `train.json`（平常/異常の色分け情報のみ、路線名と状態のみ）
+- APIキー・Secretsは現状不要
 
 ---
 
