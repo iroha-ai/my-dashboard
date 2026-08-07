@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="clock">
+    <span id="clock-time" class="clock-time">--:--:--</span>
+    <span id="clock-date" class="clock-date">----年--月--日（-）</span>
+  </div>
+  <div id="status-strip" class="status-strip"></div>
+</header>
+
+<main class="layout">
+
+  <aside class="panel sidebar weekly-panel">
+    <h2 class="block-title">昭島市 週間天気</h2>
+    <div id="akishima-alerts" class="weekly-alerts"></div>
+    <ul id="weekly-weather-list" class="weekly-list">
+      <li class="placeholder">読み込み中</li>
+    </ul>
+  </aside>
+
+  <div class="center">
+    <section id="weather-row" class="weather-row">
+      <div class="placeholder">天気を読み込み中</div>
+    </section>
+
+    <section class="pickup-row">
+      <div class="panel pickup-block">
+        <h2 class="block-title">来客・面談</h2>
+        <ul id="visitor-list" class="pickup-list">
+          <li class="placeholder">読み込み中</li>
+        </ul>
+      </div>
+      <div class="panel pickup-block">
+        <h2 class="block-title">会議</h2>
+        <ul id="meeting-list" class="pickup-list">
+          <li class="placeholder">読み込み中</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel today">
+      <h2 class="block-title">
+        今日の予定
+        <span id="today-count" class="count"></span>
+      </h2>
+      <ul id="today-list" class="today-list">
+        <li class="placeholder">読み込み中</li>
+      </ul>
+    </section>
+
+    <section class="panel week">
+      <h2 class="block-title">これからの一週間</h2>
+      <div id="week-list" class="week-list">
+        <div class="placeholder">読み込み中</div>
+      </div>
+    </section>
+  </div>
+
+  <aside class="panel market">
+    <h2 class="block-title">相場</h2>
+    <ul id="market-list" class="market-list">
+      <li class="placeholder">読み込み中</li>
+    </ul>
+    <div class="market-foot">
+      <div id="market-updated" class="market-updated">—</div>
+      <a id="chart-link" class="chart-link" href="#" target="_blank" rel="noopener">チャートを見る</a>
+    </div>
+  </aside>
+
+</main>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+/* 会社モニターでの常時表示を前提にした暗色テーマ。
+   離れた位置からの視認性を優先し、本文は 18px 以上を基準にしている。 */
+
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --panel-edge: #232a34;
+  --text: #e6edf3;
+  --text-dim: #8b98a5;
+  --text-faint: #5d6874;
+  --accent: #4aa8ff;
+  --visitor: #ffb454;
+  --warn: #ff6b6b;
+  --ok: #3fb950;
+
+  --gap: 14px;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------- ヘッダー（時計） ---------- */
+
+.topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  padding: 8px 18px;
+  background: #10151c;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
+.clock {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.clock-time {
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-date {
+  font-size: 22px;
+  color: var(--text-dim);
+}
+
+.status-strip {
+  display: flex;
+  gap: 14px;
+  font-size: 15px;
+  color: var(--text-faint);
+}
+
+.status-strip .status-error { color: var(--warn); }
+.status-strip .status-action {
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 2px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---------- レイアウト ---------- */
+
+.layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 260px;
+  gap: var(--gap);
+  padding: var(--gap);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.center {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--gap);
+  min-height: 0;
+}
+
+.block-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.block-title .count {
+  font-size: 14px;
+  color: var(--text-faint);
+  letter-spacing: 0;
+}
+
+.placeholder {
+  color: var(--text-faint);
+  font-size: 16px;
+}
+
+/* ---------- 左サイドバー（昭島 週間天気） ---------- */
+
+.weekly-panel {
+  overflow-y: auto;
+}
+
+.weekly-alerts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.weekly-alerts:empty {
+  display: none;
+}
+
+.weekly-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.weekly-day {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 64px 42px;
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--panel-edge);
+  font-variant-numeric: tabular-nums;
+}
+
+.weekly-day:last-child {
+  border-bottom: none;
+}
+
+.weekly-day.is-today {
+  background: rgba(74, 168, 255, 0.08);
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 6px;
+}
+
+.weekly-date {
+  font-size: 16px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.weekly-day.is-today .weekly-date {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.weekly-date.is-sat { color: #6bb6ff; }
+.weekly-date.is-sun { color: #ff8b8b; }
+
+.weekly-label {
+  font-size: 15px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weekly-temp {
+  font-size: 17px;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.weekly-temp .max { color: #ff9b6b; }
+.weekly-temp .min { color: #6bb6ff; }
+
+.weekly-pop {
+  font-size: 14px;
+  color: var(--text-faint);
+  text-align: right;
+}
+
+/* ---------- 来客・会議（中央上段） ---------- */
+
+.pickup-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  min-height: 0;
+}
+
+.pickup-block {
+  min-height: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.pickup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pickup-list li { margin-bottom: 12px; }
+
+.pickup-item {
+  border-left: 3px solid var(--panel-edge);
+  padding-left: 10px;
+}
+
+.pickup-item.is-visitor { border-left-color: var(--visitor); }
+.pickup-item.is-meeting { border-left-color: var(--accent); }
+
+.pickup-time {
+  font-size: 15px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.pickup-title {
+  font-size: 19px;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.pickup-place {
+  font-size: 15px;
+  color: var(--text-dim);
+  word-break: break-word;
+}
+
+.pickup-day {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* ---------- 天気 ---------- */
+
+.weather-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.weather-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  column-gap: 14px;
+  align-items: baseline;
+}
+
+.weather-city {
+  grid-column: 1 / -1;
+  font-size: 16px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.weather-temp {
+  grid-row: 2;
+  font-size: 38px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.weather-temp .unit {
+  font-size: 20px;
+  color: var(--text-dim);
+  margin-left: 2px;
+}
+
+.weather-range {
+  grid-row: 2;
+  font-size: 16px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.weather-range .max { color: #ff9b6b; }
+.weather-range .min { color: #6bb6ff; }
+
+.weather-desc {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  font-size: 15px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weather-alerts {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.alert-chip {
+  font-size: 14px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff9b9b;
+  border: 1px solid rgba(255, 107, 107, 0.4);
+}
+
+.alert-chip.is-emergency {
+  background: rgba(255, 107, 107, 0.35);
+  color: #fff;
+  font-weight: 600;
+}
+
+.alert-none {
+  font-size: 14px;
+  color: var(--text-faint);
+}
+
+/* ---------- 今日の予定 ---------- */
+
+.today-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.today-item {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--panel-edge);
+  align-items: baseline;
+}
+
+.today-item:last-child { border-bottom: none; }
+
+.today-time {
+  font-size: 24px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.today-time.is-allday {
+  font-size: 18px;
+  color: var(--text-dim);
+}
+
+.today-main { min-width: 0; }
+
+.today-title {
+  font-size: 26px;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.today-place {
+  font-size: 16px;
+  color: var(--text-dim);
+  word-break: break-word;
+}
+
+.today-item.is-visitor .today-title { color: var(--visitor); }
+.today-item.is-past { opacity: 0.4; }
+
+/* ---------- 一週間 ---------- */
+
+.week-list {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.week-day {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 14px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--panel-edge);
+  align-items: baseline;
+}
+
+.week-day:last-child { border-bottom: none; }
+
+.week-label {
+  font-size: 17px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.week-label.is-sat { color: #6bb6ff; }
+.week-label.is-sun { color: #ff8b8b; }
+
+.week-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  min-width: 0;
+}
+
+.week-event {
+  font-size: 17px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.week-event .t {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  margin-right: 5px;
+}
+
+.week-event.is-visitor { color: var(--visitor); }
+
+.week-empty {
+  font-size: 16px;
+  color: var(--text-faint);
+}
+
+/* ---------- 相場 ---------- */
+
+.market-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.market-item {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
+.market-item:last-child { border-bottom: none; }
+
+.market-name {
+  font-size: 15px;
+  color: var(--text-dim);
+}
+
+.market-value {
+  font-size: 27px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.market-value.is-missing {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-faint);
+}
+
+.market-note {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.market-foot {
+  flex: 0 0 auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--panel-edge);
+}
+
+.market-updated {
+  font-size: 13px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.market-updated.is-stale { color: var(--warn); }
+
+.chart-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.chart-link:hover { text-decoration: underline; }
+
+/* ---------- エラー表示 ---------- */
+
+.load-error {
+  font-size: 15px;
+  color: var(--warn);
+}

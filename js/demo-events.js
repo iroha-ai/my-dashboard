@@ -1,0 +1,87 @@
+// レイアウト確認用のサンプル予定。?demo=1 のときだけ読み込まれる。
+// Googleカレンダーに接続しなくても、画面の見え方を確かめられるようにするためのもの。
+
+function at(dayOffset, hour, minute = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  d.setHours(hour, minute, 0, 0);
+  return d.toISOString();
+}
+
+function dateOnly(dayOffset) {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate()
+  ).padStart(2, '0')}`;
+}
+
+export function DEMO_EVENTS() {
+  return [
+    {
+      summary: '朝会',
+      location: '会議室A',
+      start: { dateTime: at(0, 9, 30) },
+      end: { dateTime: at(0, 9, 45) },
+    },
+    {
+      summary: '来客 山田製作所 山田様・佐藤様',
+      location: '応接室1',
+      start: { dateTime: at(0, 10, 30) },
+      end: { dateTime: at(0, 11, 30) },
+    },
+    {
+      summary: '人事定例会議',
+      location: '会議室B',
+      start: { dateTime: at(0, 13, 0) },
+      end: { dateTime: at(0, 14, 0) },
+    },
+    {
+      summary: '面談 中途採用一次（エンジニア職）',
+      location: 'オンライン',
+      start: { dateTime: at(0, 15, 0) },
+      end: { dateTime: at(0, 16, 0) },
+    },
+    {
+      summary: '役員会',
+      location: '大会議室',
+      start: { dateTime: at(0, 16, 30) },
+      end: { dateTime: at(0, 18, 0) },
+    },
+    {
+      summary: '健康診断の運用確認',
+      location: '',
+      start: { dateTime: at(1, 11, 0) },
+      end: { dateTime: at(1, 12, 0) },
+    },
+    {
+      summary: '来客 ソフトウェア商談',
+      location: '応接室2',
+      start: { dateTime: at(1, 14, 0) },
+      end: { dateTime: at(1, 15, 0) },
+    },
+    {
+      summary: '全社朝礼',
+      location: '',
+      start: { dateTime: at(2, 9, 0) },
+      end: { dateTime: at(2, 9, 30) },
+    },
+    {
+      summary: '面談 評価フィードバック',
+      location: '会議室C',
+      start: { dateTime: at(3, 10, 0) },
+      end: { dateTime: at(3, 11, 0) },
+    },
+    {
+      summary: '夏季休暇',
+      start: { date: dateOnly(5) },
+      end: { date: dateOnly(6) },
+    },
+    {
+      summary: '労務相談',
+      location: '会議室A',
+      start: { dateTime: at(6, 13, 30) },
+      end: { dateTime: at(6, 14, 30) },
+    },
+  ];
+}
