@@ -60,14 +60,25 @@ export async function updateTasks(token, onStatus) {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     });
-    if (!res.ok) throw new Error(`タスク取得に失敗 (${res.status})`);
+    if (!res.ok) {
+      // 原因（権限不足・リスト無し等）を画面だけで判断できるよう、
+      // Google側のエラーメッセージまで拾って出す。
+      let detail = `HTTP ${res.status}`;
+      try {
+        const body = await res.json();
+        if (body?.error?.message) detail = `${res.status} ${body.error.message}`;
+      } catch {
+        // 本文がJSONでない場合はステータスコードのみで諦める。
+      }
+      throw new Error(detail);
+    }
     const data = await res.json();
 
     renderTasks(data.items || []);
     onStatus?.('tasks', null, false);
   } catch (err) {
     console.error('タスクの取得に失敗', err);
-    showMessage(node, 'タスクを取得できませんでした', true);
+    showMessage(node, `タスクを取得できませんでした（${err.message}）`, true);
     onStatus?.('tasks', 'タスクの取得に失敗', true);
   }
 }
