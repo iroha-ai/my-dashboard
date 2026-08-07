@@ -37,8 +37,8 @@ export function DEMO_EVENTS() {
       end: { dateTime: at(0, 14, 0) },
     },
     {
-      summary: '面談 中途採用一次（エンジニア職）',
-      location: 'オンライン',
+      summary: '外出 取引先訪問（エンジニア職 中途採用面接）',
+      location: '先方オフィス',
       start: { dateTime: at(0, 15, 0) },
       end: { dateTime: at(0, 16, 0) },
     },
@@ -67,8 +67,8 @@ export function DEMO_EVENTS() {
       end: { dateTime: at(2, 9, 30) },
     },
     {
-      summary: '面談 評価フィードバック',
-      location: '会議室C',
+      summary: '外出 銀行訪問',
+      location: '',
       start: { dateTime: at(3, 10, 0) },
       end: { dateTime: at(3, 11, 0) },
     },

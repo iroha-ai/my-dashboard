@@ -60,8 +60,8 @@ export const CONFIG = {
     market: 5 * 60 * 1000,
   },
 
-  // 来客・面談として拾うタイトルのキーワード。
-  visitorKeywords: ['来客', '面談'],
+  // 来客・外出として拾うタイトルのキーワード（部分一致）。
+  visitorKeywords: ['来客', '外出'],
 
   // 一週間の予定を何日先まで出すか。
   weekDays: 7,
