@@ -16,9 +16,13 @@ export const CONFIG = {
   // 相場の詳細を見にいく先。
   chartUrl: 'https://iroha-ai.github.io/realtime-charts/',
 
-  // 運行情報JSONの取得先。相場と同じ data ブランチ・raw経由。
-  trainDataUrl:
-    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train.json',
+  // 運行情報。ライブ取得はできなかったため、公式ページへの直接リンクにしている
+  // （tetsudo.rti-giken.jp が実装時点で疎通不可だったため。README参照）。
+  trainLinks: [
+    { label: '中央線', url: 'https://www.jreast.co.jp/estatus/' },
+    { label: '青梅線', url: 'https://www.jreast.co.jp/estatus/' },
+    { label: '銀座線', url: 'https://www.tokyometro.jp/unkou/index.php' },
+  ],
 
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。
@@ -54,7 +58,6 @@ export const CONFIG = {
     calendar: 5 * 60 * 1000,
     weather: 30 * 60 * 1000,
     market: 5 * 60 * 1000,
-    train: 5 * 60 * 1000,
   },
 
   // 来客・面談として拾うタイトルのキーワード。
