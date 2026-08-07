@@ -90,7 +90,7 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 260px;
+  grid-template-columns: 300px minmax(0, 1fr) 210px;
   gap: var(--gap);
   padding: var(--gap);
 }
@@ -511,12 +511,12 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .market-widget {
   flex: 0 0 auto;
-  padding-bottom: 10px;
+  padding-bottom: 4px;
   border-bottom: 1px solid var(--panel-edge);
 }
 
