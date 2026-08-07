@@ -94,3 +94,33 @@ export function DEMO_EVENTS() {
     },
   ];
 }
+
+// Google Tasksのサンプル。実際のAPIレスポンス（items配列の要素）に近い形にしている。
+export function DEMO_TASKS() {
+  return [
+    {
+      id: 'demo-1',
+      title: '見積書の確認・返信',
+      notes: '山田製作所分',
+      due: dateOnly(0) + 'T00:00:00.000Z',
+      status: 'needsAction',
+    },
+    {
+      id: 'demo-2',
+      title: '経費精算',
+      due: dateOnly(2) + 'T00:00:00.000Z',
+      status: 'needsAction',
+    },
+    {
+      id: 'demo-3',
+      title: '来期の予算資料をまとめる',
+      status: 'needsAction',
+    },
+    {
+      id: 'demo-4',
+      title: '（完了済みなので出ない）名刺発注',
+      due: dateOnly(-1) + 'T00:00:00.000Z',
+      status: 'completed',
+    },
+  ];
+}

@@ -9,9 +9,14 @@ import {
   startOfDay,
   weekdayLabel,
 } from './util.js';
+import { renderTasks, showTasksMessage, updateTasks } from './tasks.js';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
-const SCOPE = 'https://www.googleapis.com/auth/calendar.readonly';
+// タスク欄（Google Tasks）も同じ画面に出すため、カレンダーと合わせて要求する。
+// 2026-08-07 にスコープへ tasks.readonly を追加した。既存の同意には含まれて
+// いないため、追加後の初回接続だけは「接続する」を押し直す必要がある。
+const SCOPE =
+  'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks.readonly';
 
 let tokenClient = null;
 let accessToken = null;
@@ -227,14 +232,16 @@ function showCalendarMessage(message, isError) {
   for (const id of ['today-list', 'visitor-list', 'week-list']) {
     showMessage(document.getElementById(id), message, isError);
   }
+  showTasksMessage(message, isError);
   document.getElementById('today-count').textContent = '';
 }
 
 export async function updateCalendar(onStatus) {
   // 動作確認用。?demo=1 を付けると、認証せずサンプルの予定でレイアウトを確認できる。
   if (new URLSearchParams(location.search).get('demo') === '1') {
-    const { DEMO_EVENTS } = await import('./demo-events.js');
+    const { DEMO_EVENTS, DEMO_TASKS } = await import('./demo-events.js');
     renderAll(DEMO_EVENTS());
+    renderTasks(DEMO_TASKS());
     onStatus?.('calendar', 'デモ表示中', false);
     return;
   }
@@ -254,6 +261,7 @@ export async function updateCalendar(onStatus) {
     renderAll(await fetchEvents(token, from, to));
     onStatus?.('calendar', null, false);
     requestSignIn = null;
+    await updateTasks(token, onStatus);
   } catch (err) {
     console.error('カレンダーの取得に失敗', err);
     accessToken = null;
@@ -265,6 +273,7 @@ export async function updateCalendar(onStatus) {
         renderAll(await fetchEvents(token, from, to));
         onStatus?.('calendar', null, false);
         requestSignIn = null;
+        await updateTasks(token, onStatus);
       } catch (retryErr) {
         // ポップアップを閉じた・許可しなかった等。押し直せる状態のまま、理由だけ出す。
         console.error('カレンダーへの接続に失敗', retryErr);
