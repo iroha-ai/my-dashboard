@@ -67,6 +67,15 @@ export function DEMO_EVENTS() {
       end: { dateTime: at(2, 9, 30) },
     },
     {
+      // タイトルに来客・外出のキーワードは無いが、駅すぱあと連携で
+      // 自動生成された移動予定として来客・外出扱いになる例。
+      summary: '大阪支社',
+      description: '新大阪 → 大阪支社\n\nPowered by 駅すぱあと',
+      location: '',
+      start: { dateTime: at(2, 13, 0) },
+      end: { dateTime: at(2, 13, 40) },
+    },
+    {
       summary: '外出 銀行訪問',
       location: '',
       start: { dateTime: at(3, 10, 0) },

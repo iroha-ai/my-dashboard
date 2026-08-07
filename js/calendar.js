@@ -93,8 +93,13 @@ function normalize(event) {
     event.end?.dateTime || `${event.end?.date || event.start?.date}T00:00:00`
   );
   const title = event.summary || '(件名なし)';
+  const description = event.description || '';
 
-  const isVisitor = CONFIG.visitorKeywords.some((kw) => title.includes(kw));
+  // タイトルのキーワードに加え、説明欄に駅すぱあと（経路検索）由来の
+  // 自動生成マーカーがある予定（＝移動・外出の予定）も来客・外出として拾う。
+  const isVisitor =
+    CONFIG.visitorKeywords.some((kw) => title.includes(kw)) ||
+    CONFIG.visitorDescriptionMarkers.some((kw) => description.includes(kw));
 
   return {
     title,
