@@ -34,7 +34,14 @@ async function getText(url) {
       'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
     },
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) {
+    if (process.env.DEBUG_TRAIN) {
+      console.error(`DEBUG ${url} -> ${res.status}`);
+      for (const [k, v] of res.headers.entries()) console.error(`DEBUG header ${k}: ${v}`);
+      console.error(`DEBUG body(500): ${(await res.text()).slice(0, 500)}`);
+    }
+    throw new Error(`HTTP ${res.status}`);
+  }
   return res.text();
 }
 
