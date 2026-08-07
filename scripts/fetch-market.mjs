@@ -3,8 +3,13 @@
 //
 // 取得先の考え方:
 //   - APIキーが要らないもので賄えるところは、そのまま賄う
-//   - ドル円と日経平均は Twelve Data（要APIキー）を使う
-//   - キーが無いときもドル円だけは前日終値で埋め、日経平均は未取得として残す
+//   - ドル円だけ Twelve Data（要APIキー）を使う
+//   - キーが無いときはドル円も前日終値で埋める
+//
+// 日経平均はここでは扱わない。無料APIで指数を安定して取れる先が
+// 見つからなかったため、index.html に TradingView ウィジェット（埋め込み、
+// realtime-charts と同じ仕組み）を直接置いている。README参照。
+//
 // 1銘柄でも落ちたときに全体を巻き添えにしないよう、失敗は銘柄ごとに閉じ込める。
 
 const TWELVEDATA_KEY = process.env.TWELVEDATA_API_KEY || '';
@@ -12,7 +17,6 @@ const TIMEOUT_MS = 15_000;
 
 const SYMBOLS = [
   { id: 'usdjpy', label: 'ドル円', decimals: 2 },
-  { id: 'n225', label: '日経平均', decimals: 0 },
   { id: 'xrp', label: 'XRP/USD', decimals: 4 },
   { id: 'xlm', label: 'XLM/USD', decimals: 4 },
   { id: 'gold', label: '金（XAU/USD）', decimals: 2 },
@@ -108,12 +112,11 @@ async function main() {
     }
   }
 
-  // ドル円・日経平均
+  // ドル円
   if (TWELVEDATA_KEY) {
     try {
-      const prices = await fetchTwelveData(['USD/JPY', 'N225']);
+      const prices = await fetchTwelveData(['USD/JPY']);
       if (prices['USD/JPY'] !== null) ok('usdjpy', prices['USD/JPY'], null);
-      if (prices['N225'] !== null) ok('n225', prices['N225'], null);
     } catch (err) {
       console.error(`Twelve Data の取得に失敗: ${err.message}`);
     }
@@ -126,13 +129,6 @@ async function main() {
     } catch (err) {
       fail('usdjpy', `取得失敗: ${err.message}`);
     }
-  }
-
-  if (!results.has('n225')) {
-    fail(
-      'n225',
-      TWELVEDATA_KEY ? '契約プランが指数に未対応の可能性' : 'APIキー未設定'
-    );
   }
 
   const payload = {

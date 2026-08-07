@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-07T02:33:59.333Z",
+  "updatedAt": "2026-08-07T06:51:45.625Z",
   "items": [
     {
       "id": "usdjpy",
@@ -10,18 +10,11 @@
       "note": "終値・8/6"
     },
     {
-      "id": "n225",
-      "label": "日経平均",
-      "decimals": 0,
-      "ok": false,
-      "reason": "APIキー未設定"
-    },
-    {
       "id": "xrp",
       "label": "XRP/USD",
       "decimals": 4,
       "ok": true,
-      "value": 1.031,
+      "value": 1.027,
       "note": null
     },
     {
@@ -29,7 +22,7 @@
       "label": "XLM/USD",
       "decimals": 4,
       "ok": true,
-      "value": 0.161968,
+      "value": 0.161374,
       "note": null
     },
     {
@@ -37,7 +30,7 @@
       "label": "金（XAU/USD）",
       "decimals": 2,
       "ok": true,
-      "value": 4259.299805,
+      "value": 4294.299805,
       "note": null
     },
     {
@@ -45,7 +38,7 @@
       "label": "銀（XAG/USD）",
       "decimals": 2,
       "ok": true,
-      "value": 62.304001,
+      "value": 63.959999,
       "note": null
     }
   ]

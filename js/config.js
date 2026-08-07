@@ -19,9 +19,9 @@ export const CONFIG = {
   // 運行情報。ライブ取得はできなかったため、公式ページへの直接リンクにしている
   // （tetsudo.rti-giken.jp が実装時点で疎通不可だったため。README参照）。
   trainLinks: [
-    { label: '中央線', url: 'https://www.jreast.co.jp/estatus/' },
-    { label: '青梅線', url: 'https://www.jreast.co.jp/estatus/' },
-    { label: '銀座線', url: 'https://www.tokyometro.jp/unkou/index.php' },
+    { label: '中央線', url: 'https://traininfo.jreast.co.jp/train_info/service.aspx' },
+    { label: '青梅線', url: 'https://traininfo.jreast.co.jp/train_info/service.aspx' },
+    { label: '銀座線', url: 'https://www.tokyometro.jp/index.html#UnkouLinesList' },
   ],
 
   // 天気を出す3地点。

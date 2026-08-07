@@ -499,6 +499,17 @@ body {
   color: var(--text-faint);
 }
 
+/* ---------- 日経平均（TradingViewウィジェット埋め込み） ---------- */
+/* 無料APIで指数を安定して取れる先が無かったため、realtime-chartsと同じ
+   TradingViewの埋め込みウィジェットで代替している（README参照）。 */
+
+.nikkei-widget {
+  flex: 0 0 auto;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
 /* ---------- 相場 ---------- */
 
 .market-list {
