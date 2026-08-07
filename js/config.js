@@ -16,6 +16,10 @@ export const CONFIG = {
   // 相場の詳細を見にいく先。
   chartUrl: 'https://iroha-ai.github.io/realtime-charts/',
 
+  // 運行情報JSONの取得先。相場と同じ data ブランチ・raw経由。
+  trainDataUrl:
+    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train.json',
+
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。
   cities: [
@@ -50,13 +54,11 @@ export const CONFIG = {
     calendar: 5 * 60 * 1000,
     weather: 30 * 60 * 1000,
     market: 5 * 60 * 1000,
+    train: 5 * 60 * 1000,
   },
 
   // 来客・面談として拾うタイトルのキーワード。
   visitorKeywords: ['来客', '面談'],
-
-  // 会議として扱わないイベント種別（Google カレンダーの eventType）。
-  excludedEventTypes: ['workingLocation', 'outOfOffice', 'focusTime', 'birthday'],
 
   // 一週間の予定を何日先まで出すか。
   weekDays: 7,

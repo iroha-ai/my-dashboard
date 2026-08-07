@@ -95,8 +95,6 @@ function normalize(event) {
   const title = event.summary || '(件名なし)';
 
   const isVisitor = CONFIG.visitorKeywords.some((kw) => title.includes(kw));
-  const eventType = event.eventType || 'default';
-  const excluded = CONFIG.excludedEventTypes.includes(eventType);
 
   return {
     title,
@@ -105,9 +103,6 @@ function normalize(event) {
     allDay,
     location: event.location || '',
     isVisitor,
-    // 来客・面談ではなく、除外種別でもないものを会議として扱う。
-    isMeeting: !isVisitor && !excluded,
-    excluded,
   };
 }
 
@@ -221,15 +216,10 @@ function renderAll(rawEvents) {
     events.filter((ev) => ev.isVisitor),
     'visitor'
   );
-  renderPickup(
-    document.getElementById('meeting-list'),
-    events.filter((ev) => ev.isMeeting),
-    'meeting'
-  );
 }
 
 function showCalendarMessage(message, isError) {
-  for (const id of ['today-list', 'visitor-list', 'meeting-list', 'week-list']) {
+  for (const id of ['today-list', 'visitor-list', 'week-list']) {
     showMessage(document.getElementById(id), message, isError);
   }
   document.getElementById('today-count').textContent = '';

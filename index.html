@@ -25,6 +25,11 @@
     <ul id="weekly-weather-list" class="weekly-list">
       <li class="placeholder">読み込み中</li>
     </ul>
+
+    <h2 class="block-title train-title">運行情報</h2>
+    <div id="train-list" class="train-list">
+      <div class="placeholder">読み込み中</div>
+    </div>
   </aside>
 
   <div class="center">
@@ -32,29 +37,23 @@
       <div class="placeholder">天気を読み込み中</div>
     </section>
 
-    <section class="pickup-row">
+    <section class="pickup-today-row">
       <div class="panel pickup-block">
         <h2 class="block-title">来客・面談</h2>
         <ul id="visitor-list" class="pickup-list">
           <li class="placeholder">読み込み中</li>
         </ul>
       </div>
-      <div class="panel pickup-block">
-        <h2 class="block-title">会議</h2>
-        <ul id="meeting-list" class="pickup-list">
+
+      <section class="panel today">
+        <h2 class="block-title">
+          今日の予定
+          <span id="today-count" class="count"></span>
+        </h2>
+        <ul id="today-list" class="today-list">
           <li class="placeholder">読み込み中</li>
         </ul>
-      </div>
-    </section>
-
-    <section class="panel today">
-      <h2 class="block-title">
-        今日の予定
-        <span id="today-count" class="count"></span>
-      </h2>
-      <ul id="today-list" class="today-list">
-        <li class="placeholder">読み込み中</li>
-      </ul>
+      </section>
     </section>
 
     <section class="panel week">

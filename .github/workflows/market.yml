@@ -1,4 +1,4 @@
-name: 相場データの更新
+name: 相場・運行情報の更新
 
 on:
   schedule:
@@ -29,6 +29,9 @@ jobs:
           TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
         run: node scripts/fetch-market.mjs > market.json
 
+      - name: 運行情報を取得する
+        run: node scripts/fetch-train.mjs > train.json
+
       - name: data ブランチへ上書きする
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
@@ -39,7 +42,8 @@ jobs:
           set -euo pipefail
           # 履歴を1コミットに保つため、親を持たないコミットを作って毎回置き換える。
           # 終日5分間隔でも、リポジトリの履歴が更新ログで埋まらないようにするため。
-          blob=$(git hash-object -w market.json)
-          tree=$(printf '100644 blob %s\tmarket.json\n' "$blob" | git mktree)
-          commit=$(git commit-tree "$tree" -m "market data $(date -u +%Y-%m-%dT%H:%M:%SZ)")
+          market_blob=$(git hash-object -w market.json)
+          train_blob=$(git hash-object -w train.json)
+          tree=$(printf '100644 blob %s\tmarket.json\n100644 blob %s\ttrain.json\n' "$market_blob" "$train_blob" | git mktree)
+          commit=$(git commit-tree "$tree" -m "status data $(date -u +%Y-%m-%dT%H:%M:%SZ)")
           git push -f origin "$commit:refs/heads/data"
