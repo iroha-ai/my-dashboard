@@ -106,8 +106,15 @@ export function DEMO_TASKS() {
       status: 'needsAction',
     },
     {
+      id: 'demo-1b',
+      title: '経費精算（今月分）',
+      due: dateOnly(0) + 'T00:00:00.000Z',
+      status: 'needsAction',
+    },
+    {
       id: 'demo-2',
-      title: '経費精算',
+      // 今日締切ではないので、今日ぶんだけの表示には出てこない例。
+      title: '来週の出張手配',
       due: dateOnly(2) + 'T00:00:00.000Z',
       status: 'needsAction',
     },

@@ -1,4 +1,4 @@
-import { clear, el, formatMonthDay, showMessage, weekdayLabel } from './util.js';
+import { clear, el, isSameDay, showMessage } from './util.js';
 
 // Google Tasks（デフォルトのタスクリストのみ）。calendar.js が取得した
 // アクセストークンをそのまま使い回すので、ここでは認証を持たない。
@@ -6,27 +6,9 @@ const TASKS_URL =
   'https://tasks.googleapis.com/tasks/v1/lists/@default/tasks' +
   '?showCompleted=false&showHidden=false&maxResults=100';
 
-function sortTasks(tasks) {
-  // 期限のあるものを先に、期限順。期限なしは後ろにまとめる。
-  return [...tasks].sort((a, b) => {
-    if (!a.due && !b.due) return 0;
-    if (!a.due) return 1;
-    if (!b.due) return -1;
-    return new Date(a.due) - new Date(b.due);
-  });
-}
-
 function renderTask(task) {
   const li = el('li');
   const item = el('div', 'pickup-item is-task');
-
-  if (task.due) {
-    // Tasks APIの due は日付のみの意味を持つ（時刻は常に00:00 UTC）。
-    const d = new Date(task.due);
-    item.appendChild(
-      el('div', 'pickup-time', `${formatMonthDay(d)}（${weekdayLabel(d)}）まで`)
-    );
-  }
 
   item.appendChild(el('div', 'pickup-title', task.title || '(タイトルなし)'));
   if (task.notes) {
@@ -41,11 +23,15 @@ export function renderTasks(rawTasks) {
   const node = document.getElementById('task-list');
   if (!node) return;
 
-  const tasks = sortTasks(rawTasks.filter((t) => t.status !== 'completed'));
+  // 来客・外出と同じく今日ぶんだけに絞る。期限なしのタスクはここには出さない。
+  const today = new Date();
+  const tasks = rawTasks.filter(
+    (t) => t.status !== 'completed' && t.due && isSameDay(new Date(t.due), today)
+  );
 
   clear(node);
   if (!tasks.length) {
-    node.appendChild(el('li', 'placeholder', '未完了のタスクはありません'));
+    node.appendChild(el('li', 'placeholder', '今日締切のタスクはなし'));
   } else {
     for (const task of tasks) node.appendChild(renderTask(task));
   }

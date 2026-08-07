@@ -116,25 +116,20 @@ function normalize(event) {
   };
 }
 
+// 来客・外出は今日ぶんだけに絞っているので、日付表示は不要（時刻のみ）。
 function renderPickup(node, events, kind) {
   clear(node);
 
   if (!events.length) {
-    node.appendChild(el('li', 'placeholder', 'この一週間は予定なし'));
+    node.appendChild(el('li', 'placeholder', '今日の予定はなし'));
     return;
   }
 
-  const today = new Date();
   for (const ev of events) {
     const li = el('li');
     const item = el('div', `pickup-item is-${kind}`);
 
-    const when = isSameDay(ev.start, today)
-      ? '今日'
-      : `${ev.start.getMonth() + 1}/${ev.start.getDate()}（${weekdayLabel(ev.start)}）`;
-    item.appendChild(
-      el('div', 'pickup-time', ev.allDay ? `${when} 終日` : `${when} ${formatTime(ev.start)}`)
-    );
+    item.appendChild(el('div', 'pickup-time', ev.allDay ? '終日' : formatTime(ev.start)));
     item.appendChild(el('div', 'pickup-title', ev.title));
     if (ev.location) {
       item.appendChild(el('div', 'pickup-place', ev.location));
@@ -223,7 +218,7 @@ function renderAll(rawEvents) {
   renderWeek(events, from);
   renderPickup(
     document.getElementById('visitor-list'),
-    events.filter((ev) => ev.isVisitor),
+    events.filter((ev) => ev.isVisitor && isSameDay(ev.start, today)),
     'visitor'
   );
 }
