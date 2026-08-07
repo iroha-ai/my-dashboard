@@ -18,12 +18,21 @@
 //     "heijou" なら平常、それ以外は何かしら異常。
 
 const TIMEOUT_MS = 15_000;
-const UA = 'Mozilla/5.0 (compatible; my-dashboard/1.0; +https://iroha-ai.github.io/my-dashboard/)';
+// 「いかにもボット」なUAだとJR東日本側で403になったため、実ブラウザに近い
+// ヘッダーにしている（Botブロックの回避が目的ではなく、単に人が普通に
+// 見るのと同じ条件で読みにいっているだけ）。
+const UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 async function getText(url) {
   const res = await fetch(url, {
     signal: AbortSignal.timeout(TIMEOUT_MS),
-    headers: { 'User-Agent': UA },
+    headers: {
+      'User-Agent': UA,
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
+    },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.text();
