@@ -3,7 +3,8 @@
 export const CONFIG = {
   // Google Cloud コンソールで作成した OAuth 2.0 クライアントID（ウェブアプリケーション）。
   // 承認済みの JavaScript 生成元に、このダッシュボードのURLを登録しておくこと。
-  googleClientId: '',
+  googleClientId:
+    '780678067574-3764pdfn1ur3s8d53un3c4d542bj9ihq.apps.googleusercontent.com',
 
   // 読みたいカレンダー。'primary' は自分のメインカレンダー。
   calendarIds: ['primary'],
