@@ -19,6 +19,7 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 | 本番 URL | `https://iroha-ai.github.io/my-dashboard/` |
 | GitHub Pages | 有効化済み（`main` ルート） |
 | Google Cloud プロジェクト | `my-dashboard`（ID: `the-name-504804-c2`） |
+| 有効化済みAPI | Google Calendar API、Google Tasks API |
 | OAuth クライアント | 発行済み（`js/config.js` の `googleClientId`）。テストユーザーに Hide のアカウント登録済み |
 | OAuthスコープ | `calendar.readonly` + `tasks.readonly`（2026-08-07にtasks追加、Hide側で同意済み） |
 | `TWELVEDATA_API_KEY` | GitHub Secrets 登録済み |
@@ -94,6 +95,13 @@ Google Tasksの`@default`リスト（未完了・期限順）を、来客・外�
   Tasks用に別途サインインフローは持たない
 - `js/tasks.js`が取得・描画を担当。`js/calendar.js`からトークン取得後に呼ばれる
 - 表示スタイルは来客・外出と同じ`.pickup-item`を流用（`is-task`修飾子、枠線の色だけ変えている）
+
+**ハマった点（2026-08-07）:** Tasks API有効化のクリックが最初は実際には反映されておらず、
+`403 Google Tasks API has not been used in project ... or it is disabled` が出続けた。
+Cloud Consoleの製品詳細ページに出る青いチェックマークは**有効化状態の表示ではなくTasksの
+プロダクトロゴ**で、紛らわしい。有効化できたかどうかは、ボタンが「API を無効にする」に
+変わっているか、または「API とサービス」→「有効な API とサービス」の一覧に実際に
+出ているかで確認すること（「有効にする」ボタンがまだ表示されている＝未有効）。
 
 ## Googleサインインが「毎回クリックが必要」な件（2026-08-07 判明）
 
