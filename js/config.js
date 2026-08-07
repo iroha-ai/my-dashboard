@@ -1,4 +1,9 @@
 // 設定はこのファイルだけを書き換えれば済むようにまとめている。
+//
+// 相場（ドル円・日経平均・XRP・XLM・金・銀）はここには無い。
+// TradingViewウィジェット（embed-widget-single-quote.js）として
+// index.html に直書きしている（realtime-chartsと同じシンボル・同じ仕組み）。
+// 銘柄を増減・変更したいときは index.html の `.market-widgets` を編集する。
 
 export const CONFIG = {
   // Google Cloud コンソールで作成した OAuth 2.0 クライアントID（ウェブアプリケーション）。
@@ -8,13 +13,6 @@ export const CONFIG = {
 
   // 読みたいカレンダー。'primary' は自分のメインカレンダー。
   calendarIds: ['primary'],
-
-  // 相場JSONの取得先。GitHub Pages のキャッシュ（10分）を避けるため raw から読む。
-  marketDataUrl:
-    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/market.json',
-
-  // 相場の詳細を見にいく先。
-  chartUrl: 'https://iroha-ai.github.io/realtime-charts/',
 
   // 運行情報。ライブ取得はできなかったため、公式ページへの直接リンクにしている
   // （tetsudo.rti-giken.jp が実装時点で疎通不可だったため。README参照）。
@@ -53,11 +51,11 @@ export const CONFIG = {
     },
   ],
 
-  // 更新間隔（ミリ秒）。
+  // 更新間隔（ミリ秒）。相場（TradingViewウィジェット）はウィジェット自身が
+  // リアルタイム更新するので、ここには含まれない。
   intervals: {
     calendar: 5 * 60 * 1000,
     weather: 30 * 60 * 1000,
-    market: 5 * 60 * 1000,
   },
 
   // 来客・外出として拾うタイトルのキーワード（部分一致）。

@@ -1,7 +1,6 @@
 import { CONFIG } from './config.js';
 import { startClock } from './clock.js';
 import { updateCalendar } from './calendar.js';
-import { updateMarket } from './market.js';
 import { updateWeather } from './weather.js';
 import { clear, el, runPeriodically } from './util.js';
 
@@ -35,4 +34,3 @@ startClock();
 
 runPeriodically(() => updateCalendar(setStatus), CONFIG.intervals.calendar);
 runPeriodically(() => updateWeather(setStatus), CONFIG.intervals.weather);
-runPeriodically(() => updateMarket(setStatus), CONFIG.intervals.market);

@@ -83,27 +83,64 @@
   <aside class="panel market">
     <h2 class="block-title">相場</h2>
 
-    <div class="nikkei-widget">
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
-        {
-          "symbol": "OANDA:JP225USD",
-          "colorTheme": "dark",
-          "isTransparent": true,
-          "locale": "ja",
-          "width": "100%"
-        }
-        </script>
+    <div class="market-widgets">
+      <div class="market-widget">
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          { "symbol": "OANDA:USDJPY", "colorTheme": "dark", "isTransparent": true, "locale": "ja", "width": "100%" }
+          </script>
+        </div>
+      </div>
+
+      <div class="market-widget">
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          { "symbol": "OANDA:JP225USD", "colorTheme": "dark", "isTransparent": true, "locale": "ja", "width": "100%" }
+          </script>
+        </div>
+      </div>
+
+      <div class="market-widget">
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          { "symbol": "COINBASE:XRPUSD", "colorTheme": "dark", "isTransparent": true, "locale": "ja", "width": "100%" }
+          </script>
+        </div>
+      </div>
+
+      <div class="market-widget">
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          { "symbol": "COINBASE:XLMUSD", "colorTheme": "dark", "isTransparent": true, "locale": "ja", "width": "100%" }
+          </script>
+        </div>
+      </div>
+
+      <div class="market-widget">
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          { "symbol": "OANDA:XAUUSD", "colorTheme": "dark", "isTransparent": true, "locale": "ja", "width": "100%" }
+          </script>
+        </div>
+      </div>
+
+      <div class="market-widget">
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          { "symbol": "OANDA:XAGUSD", "colorTheme": "dark", "isTransparent": true, "locale": "ja", "width": "100%" }
+          </script>
+        </div>
       </div>
     </div>
 
-    <ul id="market-list" class="market-list">
-      <li class="placeholder">読み込み中</li>
-    </ul>
     <div class="market-foot">
-      <div id="market-updated" class="market-updated">—</div>
-      <a id="chart-link" class="chart-link" href="#" target="_blank" rel="noopener">チャートを見る</a>
+      <a class="chart-link" href="https://iroha-ai.github.io/realtime-charts/" target="_blank" rel="noopener">チャートを見る</a>
     </div>
   </aside>
 

@@ -501,70 +501,32 @@ body {
   color: var(--text-faint);
 }
 
-/* ---------- 日経平均（TradingViewウィジェット埋め込み） ---------- */
-/* 無料APIで指数を安定して取れる先が無かったため、realtime-chartsと同じ
-   TradingViewの埋め込みウィジェットで代替している（README参照）。 */
+/* ---------- 相場（TradingViewウィジェット埋め込み） ---------- */
+/* 無料APIで安定して取れる先が無かったため、realtime-chartsと同じ
+   TradingViewの埋め込みウィジェット（1銘柄=1ウィジェット）にしている。
+   ウィジェット自身がリアルタイム更新するので、こちらでの取得・鮮度管理は不要。 */
 
-.nikkei-widget {
+.market-widgets {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.market-widget {
   flex: 0 0 auto;
-  margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--panel-edge);
 }
 
-/* ---------- 相場 ---------- */
-
-.market-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  flex: 1 1 auto;
-  overflow-y: auto;
-}
-
-.market-item {
-  padding: 7px 0;
-  border-bottom: 1px solid var(--panel-edge);
-}
-
-.market-item:last-child { border-bottom: none; }
-
-.market-name {
-  font-size: 15px;
-  color: var(--text-dim);
-}
-
-.market-value {
-  font-size: 27px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-
-.market-value.is-missing {
-  font-size: 18px;
-  font-weight: 400;
-  color: var(--text-faint);
-}
-
-.market-note {
-  font-size: 13px;
-  color: var(--text-faint);
-}
+.market-widget:last-child { border-bottom: none; }
 
 .market-foot {
   flex: 0 0 auto;
   padding-top: 8px;
   border-top: 1px solid var(--panel-edge);
 }
-
-.market-updated {
-  font-size: 13px;
-  color: var(--text-faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.market-updated.is-stale { color: var(--warn); }
 
 .chart-link {
   display: inline-block;
