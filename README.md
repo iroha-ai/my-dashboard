@@ -145,8 +145,11 @@ python3 -m http.server 8000
   明示的に `Asia/Tokyo` を指定していないため、モニターPCのタイムゾーン設定に依存する
 - **運行情報のデータ源は、非公式APIではなく、JR東日本・東京メトロが自社サイトの
   表示に使っている内部HTML/JSONを直接読む方式にしている。**（`scripts/fetch-train.mjs`）
-  - 中央線・青梅線: `https://traininfo.jreast.co.jp/train_info/kanto.aspx` のHTMLを解析
-  - 銀座線: `https://www.tokyometro.jp/library/common/operation/status.json`（JSONP）
+  - 中央線・青梅線: `https://traininfo.jreast.co.jp/train_info/kanto.aspx` のHTMLを解析。
+    **ただしGitHub ActionsからはAkamaiのBot対策でHTTP 403になり、現状は取得できていない**
+    （ローカル・ブラウザからは通る）。UA偽装等でのさらなる回避はしない方針のため、
+    中央線・青梅線のリンクは今のところ常に無色のまま。詳細・代替案はHANDOFF.md参照
+  - 銀座線: `https://www.tokyometro.jp/library/common/operation/status.json`（JSONP）。こちらはGitHub Actionsからも問題なく取得できている
   - **JR東日本のページには「無断転載、複写または電磁媒体等に加工することを禁じます」との
     記載がある。** 個人利用・非公開的な用途（社内モニター表示、色だけの抽出）の範囲と
     割り切って使っている（2026-08-07、Hide了承済み）。もし問題になった場合は、

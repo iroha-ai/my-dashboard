@@ -229,13 +229,32 @@ python3 -m http.server 8000
 （電源を入れ直した時に一回押すだけ）が、要件定義の「常時表示で放置」からは
 少しずれている。時間があるときに原因を調べる。
 
-### 2. 運行情報のスクレイピング先の安定性（優先度中・要監視）
+### 2. 中央線・青梅線（JR東日本）はライブ検知できていない（現状把握・保留）
 
-JR東日本・東京メトロの内部HTML/JSON構造に依存しているため、サイトリニューアルで
-いつ壊れてもおかしくない。壊れた場合は `scripts/fetch-train.mjs` の
-`parseJreastLine` / `fetchMetroGinza` のパース部分を実際のHTML/JSON構造に
-合わせて直す。壊れても各路線は`ok: false`になるだけで、リンクの色が変わらなくなる
-（＝害はないが気づきにくい）点は把握しておくこと。
+`traininfo.jreast.co.jp` は **Akamai（Bot対策）によるIPブロック**で、GitHub Actionsの
+ランナーからのアクセスがHTTP 403で弾かれる（`server: AkamaiGHost` ヘッダーで確認済み、
+2026-08-07）。ローカル環境やブラウザからは通るが、GitHub Actions特有の問題。
+
+UA偽装等でのさらなる回避は行わない方針（Bot検知の迂回に当たるため）。`fetch-train.mjs`は
+「取得できない＝色を変えない」設計なので実害は無いが、**中央線・青梅線のリンクは常に
+無色のまま**（銀座線だけライブで色が付く）。Hideに選択肢を提示し、「今のままでよい」と
+判断済み（2026-08-07）。
+
+代替案として **駅すぱあとAPI**（`https://docs.ekispert.com/v1/api/operationLine/service/rescuenow/information.html`、
+レスキューナウ提供の鉄道運行情報、JR・メトロ含め横断的にカバー）を調査した。無料
+トライアル制度があるが、申請フォーム経由の審査が必要で即座には使えないため保留。
+やる気が出たら:
+
+1. `https://api-info.ekispert.com/form/trial/` から無料トライアルを申請（Hideの操作が必要）
+2. APIキーを取得したら `GET /v1/json/operationLine/service/rescuenow/information?key=...` で
+   路線ごとの運行情報が取れる（`status`属性で平常/異常を判定）
+3. `scripts/fetch-train.mjs` を駅すぱあとAPI呼び出しに差し替える（中央線・青梅線・銀座線を
+   まとめて1つのAPIから取れる可能性が高く、東京メトロ側の個別実装も統合できるかもしれない）
+4. APIキーは `EKISPERT_API_KEY` のようなGitHub Secretsに置く
+
+`scripts/fetch-train.mjs`には`DEBUG_TRAIN`環境変数でレスポンスヘッダー・本文を
+ログ出力するデバッグコードを残してある（`.github/workflows/train.yml`のenv:に
+`DEBUG_TRAIN: '1'`を足せば有効化できる）。
 
 ### 3. 時計のタイムゾーン（優先度低）
 
