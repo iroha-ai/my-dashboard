@@ -24,6 +24,13 @@ export const CONFIG = {
   trainMailDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train-mail.json',
 
+  // 雨雲レーダー画像（週間天気の下、昭島市・鹿沼市）の取得に使う
+  // Yahoo!静止画地図APIのアプリケーションID（Client ID）。
+  // https://e.developer.yahoo.co.jp/register/ で無料登録すると発行される
+  // （登録後、YOLPの「アプリケーションの管理」からClient IDを控える）。
+  // 空文字のままだと、雨雲レーダーの代わりに案内文だけ表示する。
+  yahooMapAppId: '',
+
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。
   cities: [

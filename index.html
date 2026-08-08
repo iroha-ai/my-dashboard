@@ -25,12 +25,16 @@
     <ul id="akishima-weekly-list" class="weekly-list">
       <li class="placeholder">読み込み中</li>
     </ul>
+    <!-- 雨雲レーダー（Yahoo!静止画地図API）。js/config.js の yahooMapAppId が
+         未設定の間は案内文だけ出す。詳細はREADME.md参照。 -->
+    <div id="akishima-radar" class="rain-radar"></div>
 
     <h2 class="block-title weekly-title-2">鹿沼市 週間天気</h2>
     <div id="kanuma-alerts" class="weekly-alerts"></div>
     <ul id="kanuma-weekly-list" class="weekly-list">
       <li class="placeholder">読み込み中</li>
     </ul>
+    <div id="kanuma-radar" class="rain-radar"></div>
 
     <h2 class="block-title train-title">運行情報</h2>
     <p class="train-note">遅延・見合わせがあるとリンクが赤くなります</p>
@@ -41,59 +45,59 @@
     </ul>
   </aside>
 
+  <!-- .center は1つのグリッド（3列×3行）として、来客・外出／タスク／今日の予定（2行目）と
+       これからの一週間／カレンダー（3行目）で列トラックを共有している。こうすることで
+       「カレンダーの左位置を今日の予定に、これからの一週間の右端をタスクの右端に」を
+       ピクセル単位で確実に揃えられる（2026-08-08、Hideの要望で.pickup-today-row /
+       .week-row という別々のネストしたグリッドから統合した）。 -->
   <div class="center">
     <section id="weather-row" class="weather-row">
       <div class="placeholder">天気を読み込み中</div>
     </section>
 
-    <section class="pickup-today-row">
-      <div class="panel pickup-block">
-        <h2 class="block-title">来客・外出</h2>
-        <ul id="visitor-list" class="pickup-list">
-          <li class="placeholder">読み込み中</li>
-        </ul>
-      </div>
+    <div class="panel pickup-block visitor-block">
+      <h2 class="block-title">来客・外出</h2>
+      <ul id="visitor-list" class="pickup-list">
+        <li class="placeholder">読み込み中</li>
+      </ul>
+    </div>
 
-      <div class="panel pickup-block">
-        <h2 class="block-title">タスク</h2>
-        <ul id="task-list" class="pickup-list">
-          <li class="placeholder">読み込み中</li>
-        </ul>
-      </div>
+    <div class="panel pickup-block task-block">
+      <h2 class="block-title">タスク</h2>
+      <ul id="task-list" class="pickup-list">
+        <li class="placeholder">読み込み中</li>
+      </ul>
+    </div>
 
-      <section class="panel today">
-        <h2 class="block-title">
-          今日の予定
-          <span id="today-count" class="count"></span>
-        </h2>
-        <ul id="today-list" class="today-list">
-          <li class="placeholder">読み込み中</li>
-        </ul>
-      </section>
+    <section class="panel today">
+      <h2 class="block-title">
+        今日の予定
+        <span id="today-count" class="count"></span>
+      </h2>
+      <ul id="today-list" class="today-list">
+        <li class="placeholder">読み込み中</li>
+      </ul>
     </section>
 
-    <section class="week-row">
-      <section class="panel week">
-        <h2 class="block-title">これからの一週間</h2>
-        <div id="week-list" class="week-list">
-          <div class="placeholder">読み込み中</div>
-        </div>
-      </section>
+    <section class="panel week">
+      <h2 class="block-title">これからの一週間</h2>
+      <div id="week-list" class="week-list">
+        <div class="placeholder">読み込み中</div>
+      </div>
+    </section>
 
-      <!-- Googleカレンダーの公式埋め込み（閲覧専用・週表示、日付の切替えは可）。
-           srcはjs/calendar.jsが認証後に組み立てる（メールアドレスをリポジトリに
-           書かないため）。2026-08-08、「今日の予定」から「これからの一週間」の
-           右隣りへ場所を移した。 -->
-      <section class="panel week-calendar">
-        <h2 class="block-title">カレンダー</h2>
-        <iframe
-          id="week-calendar-embed"
-          class="week-calendar-embed is-hidden"
-          title="カレンダー（Googleカレンダー）"
-          loading="lazy"
-        ></iframe>
-        <div id="week-calendar-placeholder" class="placeholder">読み込み中</div>
-      </section>
+    <!-- Googleカレンダーの公式埋め込み（閲覧専用・週表示、日付の切替えは可）。
+         srcはjs/calendar.jsが認証後に組み立てる（メールアドレスをリポジトリに
+         書かないため）。左位置は今日の予定の列に揃えている（.center参照）。 -->
+    <section class="panel week-calendar">
+      <h2 class="block-title">カレンダー</h2>
+      <iframe
+        id="week-calendar-embed"
+        class="week-calendar-embed is-hidden"
+        title="カレンダー（Googleカレンダー）"
+        loading="lazy"
+      ></iframe>
+      <div id="week-calendar-placeholder" class="placeholder">読み込み中</div>
     </section>
   </div>
 
