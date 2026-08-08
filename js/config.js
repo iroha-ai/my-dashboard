@@ -67,7 +67,8 @@ export const CONFIG = {
   // 来客・外出として拾う、説明欄（description）のマーカー文字列（部分一致）。
   // 駅すぱあと（経路検索）連携などで自動生成された予定は、タイトルに
   // 来客・外出のキーワードが入っていないことがあるため、こちらでも拾う。
-  visitorDescriptionMarkers: ['Powered by 駅すぱあと'],
+  // じょるだん（乗換案内）経由の予定も同様に、説明欄末尾のリンクで判定する（2026-08-09追加）。
+  visitorDescriptionMarkers: ['Powered by 駅すぱあと', 'jorudan.jp'],
 
   // 一週間の予定を何日先まで出すか。
   weekDays: 7,
