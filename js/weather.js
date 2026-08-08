@@ -149,9 +149,13 @@ function renderWeeklyDay(day, isToday) {
     `${d.getMonth() + 1}/${d.getDate()}（${weekdayLabel(d)}）`
   );
   li.appendChild(dateLabel);
+
+  // アイコン＋テキストの両方を残す（2026-08-08、Hideの要望でテキストを復活）。
+  const labelWrap = el('span', 'weekly-label');
   const iconNode = el('span', 'weekly-icon', day.icon || '—');
-  iconNode.title = day.label || ''; // ホバー・スクリーンリーダー用に文言も残す
-  li.appendChild(iconNode);
+  labelWrap.appendChild(iconNode);
+  labelWrap.appendChild(el('span', 'weekly-label-text', day.label || '—'));
+  li.appendChild(labelWrap);
 
   const temp = el('span', 'weekly-temp');
   if (day.max !== null && day.min !== null) {
