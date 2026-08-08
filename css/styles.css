@@ -90,7 +90,8 @@ body {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 210px;
+  /* 週間天気欄（左サイドバー）を少し広げた（2026-08-08、Hideの指定。300px→340px）。 */
+  grid-template-columns: 340px minmax(0, 1fr) 210px;
   gap: var(--gap);
   padding: var(--gap);
 }
