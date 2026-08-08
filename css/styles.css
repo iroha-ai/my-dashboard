@@ -316,6 +316,36 @@ body {
 
 .train-link.is-normal { color: var(--ok); }
 
+/* ---------- リンク（左サイドバー・運行情報の下、2026-08-09追加） ---------- */
+/* 外部ツールへの静的リンク集。運行情報と違い色分けロジックは持たない。 */
+
+.links-title {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-edge);
+}
+
+.tool-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tool-link {
+  display: block;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--panel-edge);
+  font-size: 16px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.tool-link:last-child { border-bottom: none; }
+.tool-link:hover { text-decoration: underline; }
+
 /* ---------- 来客・外出 ＋ タスク ＋ 今日の予定（中央上段） ---------- */
 /* 列位置は .center 側の grid-template-columns で決まる（このセクション上部参照）。 */
 
