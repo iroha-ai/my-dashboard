@@ -10,13 +10,25 @@ import {
   weekdayLabel,
 } from './util.js';
 import { renderTasks, showTasksMessage, updateTasks } from './tasks.js';
+import { updateNewsDigest } from './news.js';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
-// タスク欄（Google Tasks）も同じ画面に出すため、カレンダーと合わせて要求する。
-// 2026-08-07 にスコープへ tasks.readonly を追加した。既存の同意には含まれて
-// いないため、追加後の初回接続だけは「接続する」を押し直す必要がある。
+// タスク欄（Google Tasks）、定時ニュース欄（Gmail）も同じ画面に出すため、
+// カレンダーと合わせて要求する。2026-08-07 にスコープへ tasks.readonly を、
+// 2026-08-08 に gmail.readonly を追加した。既存の同意には含まれていないため、
+// 追加後の初回接続だけは「接続する」を押し直す必要がある。
+//
+// 【gmail.readonlyについて】本当に必要なのは件名・日時だけ（本文は使わない）
+// なので、最初は最小権限の gmail.metadata を使う予定だった。しかし
+// gmail.metadata スコープは messages.list の q パラメータ（検索クエリ）に
+// 対応しておらず、「件名に定時ニュースダイジェストを含むメールだけ」を
+// サーバー側で絞り込めない。全メールを取得してクライアント側で絞り込むのは
+// 非現実的なため、gmail.readonly（本文も読める、より広いスコープ）を使っている。
+// 実際の使用は件名・日時の取得のみ（js/news.js参照）。
 const SCOPE =
-  'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/tasks.readonly';
+  'https://www.googleapis.com/auth/calendar.readonly ' +
+  'https://www.googleapis.com/auth/tasks.readonly ' +
+  'https://www.googleapis.com/auth/gmail.readonly';
 
 let tokenClient = null;
 let accessToken = null;
@@ -223,47 +235,13 @@ function renderAll(rawEvents) {
   );
 }
 
-// Googleカレンダーの公式埋め込み（「これからの一週間」の右隣り）。src に渡す
-// カレンダーIDはprimaryカレンダーの場合Hideのメールアドレスそのものになるため、
-// config.js等のリポジトリには書かず、既存のOAuthトークンでcalendars/primaryを
-// 取得し、実行時にブラウザ内だけで組み立てる（2026-08-08追加）。
-// 一度組み立てたら埋め込み自体はGoogle側で完結するので、以後は毎回やり直さない。
-let weekEmbedInitialized = false;
-
-async function ensureWeekCalendarEmbed(token) {
-  if (weekEmbedInitialized) return;
-  const iframe = document.getElementById('week-calendar-embed');
-  if (!iframe) return;
-
-  try {
-    const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary', {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error(`カレンダーID取得に失敗 (${res.status})`);
-    const data = await res.json();
-    if (!data.id) throw new Error('カレンダーIDが空です');
-
-    const params = new URLSearchParams({
-      src: data.id,
-      ctz: 'Asia/Tokyo',
-      mode: 'WEEK',
-      showTitle: '0',
-      showNav: '1',
-      showDate: '1',
-      showPrint: '0',
-      showTabs: '0',
-      showCalendars: '0',
-      showTz: '0',
-    });
-    iframe.src = `https://calendar.google.com/calendar/embed?${params.toString()}`;
-    iframe.classList.remove('is-hidden');
-    document.getElementById('week-calendar-placeholder')?.classList.add('is-hidden');
-    weekEmbedInitialized = true;
-  } catch (err) {
-    // 失敗してもプレースホルダーが「読み込み中」のまま残るだけなので、
-    // ここでは黙ってログだけ出す（画面上のエラー表示は増やさない）。
-    console.error('カレンダー埋め込みの初期化に失敗', err);
+// ?demo=1 用。実IDが無くリンク先を持てないので、テキストのみで並べる。
+function renderDemoNews(items) {
+  const list = document.getElementById('news-digest-list');
+  if (!list) return;
+  clear(list);
+  for (const item of items) {
+    list.appendChild(el('li', 'news-digest-item', item.label));
   }
 }
 
@@ -278,9 +256,10 @@ function showCalendarMessage(message, isError) {
 export async function updateCalendar(onStatus) {
   // 動作確認用。?demo=1 を付けると、認証せずサンプルの予定でレイアウトを確認できる。
   if (new URLSearchParams(location.search).get('demo') === '1') {
-    const { DEMO_EVENTS, DEMO_TASKS } = await import('./demo-events.js');
+    const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import('./demo-events.js');
     renderAll(DEMO_EVENTS());
     renderTasks(DEMO_TASKS());
+    renderDemoNews(DEMO_NEWS());
     onStatus?.('calendar', 'デモ表示中', false);
     return;
   }
@@ -300,7 +279,7 @@ export async function updateCalendar(onStatus) {
     renderAll(await fetchEvents(token, from, to));
     onStatus?.('calendar', null, false);
     requestSignIn = null;
-    await ensureWeekCalendarEmbed(token);
+    await updateNewsDigest(token, onStatus);
     await updateTasks(token, onStatus);
   } catch (err) {
     console.error('カレンダーの取得に失敗', err);
@@ -313,7 +292,7 @@ export async function updateCalendar(onStatus) {
         renderAll(await fetchEvents(token, from, to));
         onStatus?.('calendar', null, false);
         requestSignIn = null;
-        await ensureWeekCalendarEmbed(token);
+        await updateNewsDigest(token, onStatus);
         await updateTasks(token, onStatus);
       } catch (retryErr) {
         // ポップアップを閉じた・許可しなかった等。押し直せる状態のまま、理由だけ出す。

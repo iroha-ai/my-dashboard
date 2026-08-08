@@ -490,7 +490,7 @@ body {
 .today-item.is-past { opacity: 0.4; }
 
 /* ---------- 一週間 ---------- */
-/* 「これからの一週間」とカレンダーの横並び・列位置は .center 側で決まる
+/* 「これからの一週間」と定時ニュース欄の横並び・列位置は .center 側で決まる
    （.week / .week-calendar のgrid-column指定。このファイル上部参照）。 */
 
 .week-list {
@@ -498,24 +498,33 @@ body {
   flex: 1 1 auto;
 }
 
-/* Googleカレンダーの公式埋め込み。閲覧専用だが日付の切替えは埋め込み側の
-   UIでできる。widget自体がほぼ白背景で描画するため、パネルの暗色テーマとは
-   馴染みきらない点は許容している。 */
-.week-calendar-embed {
+/* 定時ニュースダイジェスト（Gmail）へのリンク一覧。メール1通＝1行。
+   新しいものが上（js/news.jsがGmail検索結果を新しい順のまま並べる）。 */
+.news-digest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
   flex: 1 1 auto;
-  width: 100%;
-  min-height: 0;
-  border: 0;
-  border-radius: var(--radius);
-  background: #fff;
 }
 
-.week-calendar-embed.is-hidden {
-  display: none;
+.news-digest-item {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--panel-edge);
 }
 
-#week-calendar-placeholder.is-hidden {
-  display: none;
+.news-digest-item:last-child {
+  border-bottom: none;
+}
+
+.news-digest-link {
+  color: var(--accent);
+  font-size: 17px;
+  text-decoration: none;
+}
+
+.news-digest-link:hover {
+  text-decoration: underline;
 }
 
 .week-day {

@@ -42,8 +42,8 @@
   </aside>
 
   <!-- .center は1つのグリッド（3列×3行）として、来客・外出／タスク／今日の予定（2行目）と
-       これからの一週間／カレンダー（3行目）で列トラックを共有している。こうすることで
-       「カレンダーの左端を今日の予定の左端に」揃えられる（2026-08-08、Hideの要望）。 -->
+       これからの一週間／定時ニュース（3行目）で列トラックを共有している。こうすることで
+       「定時ニュース欄の左端を今日の予定の左端に」揃えられる（2026-08-08、Hideの要望）。 -->
   <div class="center">
     <section id="weather-row" class="weather-row">
       <div class="placeholder">天気を読み込み中</div>
@@ -80,18 +80,14 @@
       </div>
     </section>
 
-    <!-- Googleカレンダーの公式埋め込み（閲覧専用・週表示、日付の切替えは可）。
-         srcはjs/calendar.jsが認証後に組み立てる（メールアドレスをリポジトリに
-         書かないため）。左位置は今日の予定の列に揃えている（.center参照）。 -->
+    <!-- 定時ニュースダイジェスト（Gmailの自分宛メール）へのリンク一覧。
+         メール1通＝1行、新しいものが上（js/news.js参照）。
+         左位置は今日の予定の列に揃えている（.center参照）。 -->
     <section class="panel week-calendar">
-      <h2 class="block-title">カレンダー</h2>
-      <iframe
-        id="week-calendar-embed"
-        class="week-calendar-embed is-hidden"
-        title="カレンダー（Googleカレンダー）"
-        loading="lazy"
-      ></iframe>
-      <div id="week-calendar-placeholder" class="placeholder">読み込み中</div>
+      <h2 class="block-title">定時ニュース</h2>
+      <ul id="news-digest-list" class="news-digest-list">
+        <li class="placeholder">読み込み中</li>
+      </ul>
     </section>
   </div>
 

@@ -131,3 +131,13 @@ export function DEMO_TASKS() {
     },
   ];
 }
+
+// 定時ニュースダイジェスト欄のサンプル。実際はGmail検索結果（js/news.js）を使う。
+export function DEMO_NEWS() {
+  return [
+    { id: 'demo-news-1', label: '08/07 16:16' },
+    { id: 'demo-news-2', label: '08/07 12:12' },
+    { id: 'demo-news-3', label: '08/07 07:10' },
+    { id: 'demo-news-4', label: '08/06 22:08' },
+  ];
+}
