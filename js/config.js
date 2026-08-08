@@ -16,8 +16,13 @@ export const CONFIG = {
 
   // 運行情報JSONの取得先。data ブランチ・raw経由（相場JSONと同じ考え方）。
   // 内容は各路線の「平常運転かどうか」だけ。リンク自体は index.html に直書き。
+  // 銀座線（train.json・train.ymlが5分おきcronで直接取得）と
+  // 中央線・青梅線（train-mail.json・train-mail.ymlがジョルダンのメール検知から
+  // 反映。2026-08-08〜）でファイルが分かれている。js/train.js が両方読んで合成する。
   trainDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train.json',
+  trainMailDataUrl:
+    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train-mail.json',
 
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。

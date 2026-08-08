@@ -3,14 +3,16 @@
 // 「異常があるかどうか」だけを検知し、フロント側で該当路線リンクの色を
 // 変えるために使う（詳しい文言は出さず、色だけ。詳細は公式ページへ）。
 //
-// 出典（いずれもJR東日本・東京メトロの公式サイトが内部で使っている
-// HTML/JSONをそのまま読む形。無断転載・複写・加工を禁じる旨の記載が
-// JR東日本側にあるが、社内モニターでの個人利用の範囲と割り切って
-// 使っている。2026-08-07、Hide了承済み。HANDOFF.md参照）:
+// 【2026-08-08 変更】中央線・青梅線はここでは扱わない。GitHub Actionsの
+// ランナーが traininfo.jreast.co.jp に Akamai（Bot対策）でブロックされ、
+// ライブ検知できなかったため、ジョルダンの運行情報メール検知（GAS）に
+// 切り替えた（gas/train-status-watcher.gs → .github/workflows/train-mail.yml
+// → data/train-mail.json）。このスクリプトは銀座線（東京メトロ）専用。
+// 詳細はHANDOFF.md参照。
 //
-//   中央線・青梅線: https://traininfo.jreast.co.jp/train_info/kanto.aspx
-//     路線名の直後に traininfo-routes__status クラス（normal/それ以外）と
-//     文言が並ぶHTML構造を読む。
+// 出典（東京メトロの公式サイトが内部で使っているJSONをそのまま読む形。
+// 社内モニターでの個人利用の範囲と割り切って使っている。2026-08-07、
+// Hide了承済み。HANDOFF.md参照）:
 //
 //   銀座線: https://www.tokyometro.jp/library/common/operation/status.json
 //     東京メトロの公式トップページが読み込んでいるJSONP
@@ -18,9 +20,6 @@
 //     "heijou" なら平常、それ以外は何かしら異常。
 
 const TIMEOUT_MS = 15_000;
-// 「いかにもボット」なUAだとJR東日本側で403になったため、実ブラウザに近い
-// ヘッダーにしている（Botブロックの回避が目的ではなく、単に人が普通に
-// 見るのと同じ条件で読みにいっているだけ）。
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
@@ -45,24 +44,6 @@ async function getText(url) {
   return res.text();
 }
 
-// 路線名の直後2000文字以内に現れる traininfo-routes__status クラスと文言を拾う。
-function parseJreastLine(html, lineName) {
-  const nameIdx = html.indexOf(`traininfo-routes__name">${lineName}<`);
-  if (nameIdx === -1) return null;
-  const window = html.slice(nameIdx, nameIdx + 2000);
-  const m = window.match(/traininfo-routes__status ([a-z]+)">\s*<span>([^<]+)<\/span>/);
-  if (!m) return null;
-  return { statusClass: m[1], statusText: m[2].trim() };
-}
-
-async function fetchJreast() {
-  const html = await getText('https://traininfo.jreast.co.jp/train_info/kanto.aspx');
-  return {
-    chuo: parseJreastLine(html, '中央線快速電車'),
-    ome: parseJreastLine(html, '青梅線'),
-  };
-}
-
 async function fetchMetroGinza() {
   const text = await getText('https://www.tokyometro.jp/library/common/operation/status.json');
   // JSONP（例: operate_status_cb_func({...})）の皮を剥ぐ。
@@ -76,34 +57,6 @@ async function fetchMetroGinza() {
 
 async function main() {
   const items = [];
-
-  try {
-    const jr = await fetchJreast();
-    for (const [id, label, key] of [
-      ['chuo', '中央線', 'chuo'],
-      ['ome', '青梅線', 'ome'],
-    ]) {
-      const line = jr[key];
-      if (!line) {
-        items.push({ id, label, ok: false, reason: '路線が見つかりません' });
-      } else {
-        items.push({
-          id,
-          label,
-          ok: true,
-          isNormal: line.statusClass === 'normal',
-          status: line.statusText,
-        });
-      }
-    }
-  } catch (err) {
-    for (const [id, label] of [
-      ['chuo', '中央線'],
-      ['ome', '青梅線'],
-    ]) {
-      items.push({ id, label, ok: false, reason: `取得失敗: ${err.message}` });
-    }
-  }
 
   try {
     const metro = await fetchMetroGinza();

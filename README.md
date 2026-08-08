@@ -34,11 +34,19 @@
 （`tasks.readonly`）が必要（下記「準備」参照）。
 
 運行情報（中央線・青梅線・銀座線）はリンク自体は公式ページへの直接リンクのまま。
-そのうえで、GitHub Actionsが5分ごとに簡易ステータス（平常運転かどうか）だけを
-取得し、異常があるときだけリンクの色を変える（プッシュ的な気づき方を実現するため。
-2026-08-07、Hideの要望で追加）。詳しい文言は出さない。異常に気づいたらリンクを
-押して公式ページで確認する、という使い方を想定している。データ源については
-「気をつけていること」を参照。
+そのうえで、5分ごとに簡易ステータス（平常運転かどうか）だけを取得し、異常があるときだけ
+リンクの色を変える（プッシュ的な気づき方を実現するため。2026-08-07、Hideの要望で追加）。
+詳しい文言は出さない。異常に気づいたらリンクを押して公式ページで確認する、という
+使い方を想定している。
+
+取得経路は路線によって2通りある（2026-08-08〜）:
+
+- **銀座線:** GitHub Actionsが東京メトロの公式JSONを5分ごとcronで直接取得
+- **中央線・青梅線:** GitHub ActionsのランナーがAkamaiにブロックされ直接取得できないため、
+  ジョルダンの運行情報メールをGoogle Apps Script（Gmail監視）で検知し、GitHub Actionsに
+  中継する方式にしている（下記「4. 運行情報（ジョルダンのメール検知）を設定する」参照）
+
+データ源については「気をつけていること」も参照。
 
 相場（ドル円・日経平均・XRP・XLM・金・銀）は、すべて **TradingViewのウィジェット埋め込み**
 （`embed-widget-single-quote.js`）で表示している。`https://iroha-ai.github.io/realtime-charts/`
@@ -52,17 +60,23 @@ gold-api.com・Twelve Data・GitHub Actions cron）は撤去し、TradingViewに
 
 ```
 [GitHub Actions cron・5分ごと・終日]
-   └→ 運行情報（中央線・青梅線・銀座線）を取得 → data ブランチへ上書き
+   └→ 銀座線を取得 → data ブランチの train.json へ上書き（train.yml）
+
+[ジョルダン運行情報メール] → [Google Apps Script（Gmail監視・5分おき）]
+   └→ repository_dispatch → data ブランチの train-mail.json へ上書き（train-mail.yml）
+      （中央線・青梅線。新着メールが無くても5分おきに必ず1回送る＝ハートビート）
 
 [モニター用PCのブラウザ]
    ├→ 画面本体・相場ウィジェット : GitHub Pages + TradingView埋め込み
    ├→ 天気                      : 気象庁＋Open-Meteo（30分ごと）
    ├→ 予定・タスク               : Google Calendar API / Tasks API（5分ごと）
-   └→ 運行情報リンクの色         : raw.githubusercontent.com/.../data/train.json（5分ごと）
+   └→ 運行情報リンクの色         : train.json（銀座線）+ train-mail.json（中央線・青梅線）
+                                    どちらも raw.githubusercontent.com 経由、5分ごと
 ```
 
-GitHub Actionsのcronは運行情報の取得のみに使っている（相場データ取得用のcronは
-TradingViewウィジェット化にともない撤去した）。
+GitHub Actionsのcronは運行情報（銀座線）の取得のみに使っている（相場データ取得用のcronは
+TradingViewウィジェット化にともない撤去した）。中央線・青梅線はcronではなく、
+Google Apps Script側からのイベント駆動（repository_dispatch）で更新される。
 
 予定・タスクはブラウザと Google の間だけで完結し、リポジトリを経由しない。
 公開リポジトリでも来客名や社内の予定が外に出ないのは、この形にしているため。
@@ -115,6 +129,44 @@ APIキーもビルドも不要。現在の6銘柄:
 
 Settings → Pages で、`main` ブランチのルートを公開する。
 
+### 4. 運行情報（ジョルダンのメール検知）を設定する
+
+中央線・青梅線は、GitHub ActionsのランナーがAkamai（Bot対策）にブロックされ、
+JR東日本の公式ページを直接取得できない。代わりに、ジョルダン乗換案内の
+「運行情報メール」をGoogle Apps Script（GAS）でGmail監視し、GitHub Actionsに
+中継する方式にしている。**この設定はコード側の変更だけでは完結せず、以下の
+手動作業がHide側で必要。**
+
+1. **ジョルダンの運行情報メールを登録する**
+   （<https://mb.jorudan.co.jp/os/annai/usefuluml.html> 参照）。
+   対象路線は「中央線（快速）」「青梅線」の2つ。登録先は、次のGASプロジェクトが
+   読みにいくGmailアドレス（Hideの通常のGmailアカウントでよい）。
+2. **GitHubのPersonal Access Tokenを発行する。**
+   Fine-grained PATで、対象リポジトリを `iroha-ai/my-dashboard` に限定し、
+   **Contents: Read and write** 権限を付与する（`repository_dispatch` の発火に必要）。
+3. **Google Apps Scriptプロジェクトを作る。**
+   <https://script.google.com> で新規プロジェクトを作成し、`gas/train-status-watcher.gs`
+   の中身をまるごと貼り付ける。
+4. **Script Propertiesを設定する。**
+   プロジェクトの設定 →「スクリプト プロパティ」で以下を追加:
+   - `GITHUB_TOKEN`: 手順2で発行したトークン
+   - `GITHUB_REPO`: `iroha-ai/my-dashboard`
+5. **`installTrigger` を一度だけ手動実行する。**
+   GASエディタで関数 `installTrigger` を選んで実行ボタンを押す。初回は
+   Gmail読み取りの権限承認ダイアログが出るので許可する。これで5分おきの
+   時間主導型トリガーが設定される。
+6. **最初の実メールが届いたら、`gas/train-status-watcher.gs` 冒頭の
+   「要検証・要調整」を確認し、`SEARCH_QUERY` / `ROUTE_PATTERNS` /
+   `ALERT_KEYWORDS` / `NORMAL_KEYWORDS` を実際の件名・本文に合わせて調整する。**
+   現状の値はジョルダンの公式ページの説明からの推測であり、実物のメールでは
+   未確認。特に `SEARCH_QUERY` に送信元アドレス（`from:`）を足すと誤検知を
+   減らせる。
+
+設定後の反映確認は、GASエディタの実行ログ（実行数）と、GitHub側の
+Actions → 「運行情報の更新（ジョルダンのメール検知：中央線・青梅線）」の
+実行履歴でできる。うまく動いていれば、新着メールが無くても5分おきに
+実行が記録され続ける（ハートビート方式。詳細は`gas/train-status-watcher.gs`内コメント参照）。
+
 ## 手元で動かす
 
 ```bash
@@ -143,17 +195,24 @@ python3 -m http.server 8000
   場合、画面右上のステータス表示の対象外なので、空白のまま気づきにくい
 - 時計（`js/clock.js`）は `new Date()` のブラウザ／OSローカル時刻をそのまま使っている。
   明示的に `Asia/Tokyo` を指定していないため、モニターPCのタイムゾーン設定に依存する
-- **運行情報のデータ源は、非公式APIではなく、JR東日本・東京メトロが自社サイトの
-  表示に使っている内部HTML/JSONを直接読む方式にしている。**（`scripts/fetch-train.mjs`）
-  - 中央線・青梅線: `https://traininfo.jreast.co.jp/train_info/kanto.aspx` のHTMLを解析。
-    **ただしGitHub ActionsからはAkamaiのBot対策でHTTP 403になり、現状は取得できていない**
+- **運行情報のデータ源は路線によって異なる。**
+  - 銀座線: `https://www.tokyometro.jp/library/common/operation/status.json`（JSONP）。
+    東京メトロが自社サイトの表示に使っている内部JSONを直接読む方式
+    （`scripts/fetch-train.mjs`）。GitHub Actionsからも問題なく取得できている
+  - 中央線・青梅線: **2026-08-08〜、ジョルダンの運行情報メールをGmail監視する方式に
+    切替済み**（`gas/train-status-watcher.gs` + `.github/workflows/train-mail.yml`）。
+    以前はJR東日本の内部HTML（`traininfo.jreast.co.jp`）を直接読む方式を試みたが、
+    **GitHub ActionsからはAkamaiのBot対策でHTTP 403になり取得できなかった**
     （ローカル・ブラウザからは通る）。UA偽装等でのさらなる回避はしない方針のため、
-    中央線・青梅線のリンクは今のところ常に無色のまま。詳細・代替案はHANDOFF.md参照
-  - 銀座線: `https://www.tokyometro.jp/library/common/operation/status.json`（JSONP）。こちらはGitHub Actionsからも問題なく取得できている
+    直接取得は諦め、ジョルダンのメール検知に切り替えた。設定手順は上記
+    「4. 運行情報（ジョルダンのメール検知）を設定する」参照。詳細な経緯はHANDOFF.md参照
   - **JR東日本のページには「無断転載、複写または電磁媒体等に加工することを禁じます」との
-    記載がある。** 個人利用・非公開的な用途（社内モニター表示、色だけの抽出）の範囲と
-    割り切って使っている（2026-08-07、Hide了承済み）。もし問題になった場合は、
-    このデータ取得だけ取りやめてリンクのみの表示に戻すこと（`js/train.js`の
-    `updateTrain`を呼ばなければ良い）
+    記載があるが、中央線・青梅線はもうJR東日本のページを直接読んでいないため該当しない。**
+    （ジョルダン側の利用規約は別途確認が必要。個人利用・非公開的な用途〈社内モニター表示、
+    色だけの抽出〉の範囲と割り切っている）
   - 当初は非公式・無料の `tetsudo.rti-giken.jp` を使う実装を試みたが、実装時点（2026-08-07）に
     3つの独立したネットワークいずれからも疎通できず撤回した経緯がある（詳細はHANDOFF.md）
+  - **ジョルダンのメール検知が止まった場合の切り戻し:** `js/config.js`の
+    `trainMailDataUrl`を空文字にするか、`js/train.js`の`updateTrain`から
+    該当ソースの取得を外せば、中央線・青梅線のリンクは（色が付かないだけの）
+    静的リンク表示に戻る

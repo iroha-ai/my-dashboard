@@ -1,7 +1,7 @@
 # my-dashboard 開発引き継ぎ（Claude Code 向け）
 
 作成日: 2026-08-07
-最終更新: 2026-08-07（運行情報をライブ検知に復活・リンク色分けを追加）
+最終更新: 2026-08-08（運行情報：中央線・青梅線をジョルダンのメール検知方式に切替）
 
 ## これは何か
 
@@ -22,8 +22,8 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 | 有効化済みAPI | Google Calendar API、Google Tasks API |
 | OAuth クライアント | 発行済み（`js/config.js` の `googleClientId`）。テストユーザーに Hide のアカウント登録済み |
 | OAuthスコープ | `calendar.readonly` + `tasks.readonly` |
-| GitHub Actions | `運行情報の更新`（5分ごと cron + 手動実行）、`data` ブランチへ orphan 上書き。相場用cronは撤去済み |
-| GitHub Secrets | **無し。**（`TWELVEDATA_API_KEY` は不要になり削除済み。運行情報の取得元もキー不要） |
+| GitHub Actions | `運行情報の更新`（銀座線・5分ごと cron）＋`運行情報の更新（ジョルダンのメール検知：中央線・青梅線）`（GAS からの repository_dispatch）。どちらも `data` ブランチへ orphan 上書き。相場用cronは撤去済み |
+| GitHub Secrets | **無し。**（`TWELVEDATA_API_KEY` は不要になり削除済み。運行情報の取得元もキー不要）。ただし中央線・青梅線用の GitHub PAT は Google Apps Script 側の Script Properties に別途必要（下記「運行情報：中央線・青梅線をジョルダンのメール検知に切替」参照） |
 
 ローカルの作業コピーは `C:\Users\youtr\dev\my-dashboard`（このリポジトリの clone）。
 
@@ -101,6 +101,59 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 - 取得できなかった・データが古い（20分以上更新なし）ときは、**色を変えずそのまま**にする
   （「取れない＝平常運転」と決めつけない、という既存の設計方針を踏襲）
 
+## 運行情報：中央線・青梅線をジョルダンのメール検知に切替（2026-08-08）
+
+**きっかけ:** 下記「未完了・次にやること」に保留として残っていた、中央線・青梅線の
+Akamaiブロック問題に対して、HideがJorudan方式への切替を明示的に指示。駅すぱあとAPI
+（審査待ちで即座には使えない）よりも、以前vault側に計画だけ残っていたジョルダンの
+メール検知方式（Gmail監視）を先に採用した。
+
+**構成（銀座線とはデータ源・更新経路が完全に分かれている）:**
+
+- `gas/train-status-watcher.gs`: Google Apps Script。ジョルダンの「運行情報メール」を
+  Gmail検索で監視し、件名・本文から路線（中央線・青梅線）と状態（平常/異常）を判定する。
+  新着メールの有無に関わらず、**5分おきのトリガー実行のたびに必ず1回**
+  `repository_dispatch`（`event_type: train-mail`）を送る「ハートビート方式」。
+  最後に確認できた状態は Script Properties（`LAST_STATE`）にキャッシュしていて、
+  新着が無い回もキャッシュの中身を送り続ける。これにより `train-mail.json` の
+  `updatedAt` が5分おきに更新され続け、フロント側の鮮度判定（20分ルール）を
+  train.json と同じロジックのまま使い回せる
+- `.github/workflows/train-mail.yml`: `repository_dispatch` を受けて起動し、
+  `data` ブランチの `train-mail.json` を上書きする。`train.yml`（銀座線側）が
+  同じ `data` ブランチの `train.json` を書くのと衝突しないよう、お互いに
+  相手のファイルを引き継いでから orphan コミットを作る実装にしている
+  （両方とも `git show data:<相手のファイル>` で読み込んでからツリーに含める）
+- `js/config.js`: `trainMailDataUrl`（`train-mail.json` の raw URL）を追加
+- `js/train.js`: `train.json`（銀座線）と `train-mail.json`（中央線・青梅線）の
+  両方を並行フェッチし、それぞれ独立に鮮度判定してリンクの色を反映する
+
+**⚠️ この切替はコードだけでは動かない。Hide側の手動セットアップが必要
+（README.md「4. 運行情報（ジョルダンのメール検知）を設定する」に手順あり）:**
+
+1. ジョルダンの運行情報メールを、中央線（快速）・青梅線の2路線で登録する
+2. GitHubのFine-grained PATを発行する（対象リポジトリ限定・Contents: Read and write）
+3. `script.google.com` で新規GASプロジェクトを作り、`gas/train-status-watcher.gs`
+   の中身を貼り付ける
+4. Script Properties に `GITHUB_TOKEN` / `GITHUB_REPO` を設定する
+5. `installTrigger` を一度だけ手動実行し、Gmail読み取りを許可する
+
+**⚠️ もう一つ未検証な点:** `gas/train-status-watcher.gs` 内の `SEARCH_QUERY` /
+`ROUTE_PATTERNS` / `ALERT_KEYWORDS` / `NORMAL_KEYWORDS` は、ジョルダンの公式ページの
+説明文からの推測であり、実際に配信されるメールの件名・本文の実物は未確認。
+**最初の実メールが届いた時点で、これらの値を実物に合わせて調整する作業がまだ残っている。**
+特に `SEARCH_QUERY` に送信元アドレス（`from:`）を足すと誤検知を減らせる。
+
+**この切替でも解決しない限界:** ジョルダンが「状態が変わったときだけ」メールを送る
+（推測）前提なので、「メールが来ない＝平常運転」と「メールが来ない＝ジョルダン側の
+配信自体が止まっている／購読が切れている」を区別できない。ハートビートで
+`updatedAt` は更新され続けるため見た目上は「動いている」ように見えてしまう点に注意
+（GASの実行ログを時々確認するか、実際の運行障害時に正しく反応するか定点観測することを推奨）。
+
+**切り戻し方法:** `js/config.js`の`trainMailDataUrl`を無効にするか、
+`js/train.js`から該当ソースの取得を外せば、中央線・青梅線は元の静的リンク表示に戻る。
+GAS側のトリガーも `installTrigger` と対になる形で `ScriptApp.getProjectTriggers()`
+から手動削除すること。
+
 ## Googleサインインが「毎回クリックが必要」な件（2026-08-07 判明）
 
 理屈のうえでは、一度「接続する」で許可すれば、以後はページを開き直しても
@@ -176,17 +229,21 @@ my-dashboard/
 ├── index.html                    # 画面骨格。運行情報リンク・相場ウィジェットもここに直書き
 ├── css/styles.css                # 暗色テーマ・レイアウト
 ├── js/
-│   ├── config.js                 # ★ Hide が編集する設定（OAuth ID、trainDataUrl 等）
+│   ├── config.js                 # ★ Hide が編集する設定（OAuth ID、trainDataUrl / trainMailDataUrl 等）
 │   ├── main.js                    # 起動・定期更新・ステータスバー
 │   ├── clock.js                   # ヘッダー時計（秒あり。ローカルタイムゾーン依存、README参照）
 │   ├── weather.js                 # 上段3地点天気 + 左週間天気（昭島・鹿沼）
 │   ├── calendar.js                # Google Calendar・来客/外出ピックアップ・トークン管理
 │   ├── tasks.js                   # Google Tasks 読み込み（calendar.jsのトークンを流用）
-│   ├── train.js                   # 運行情報：リンクの色分けだけ行う
+│   ├── train.js                   # 運行情報：train.json + train-mail.jsonを合成してリンクの色分け
 │   ├── demo-events.js             # ?demo=1 用サンプル予定・タスク
 │   └── util.js
-├── scripts/fetch-train.mjs       # Actions / 手動実行用の運行情報取得
-├── .github/workflows/train.yml   # 「運行情報の更新」ワークフロー（5分ごと）
+├── scripts/fetch-train.mjs       # Actions / 手動実行用の運行情報取得（銀座線のみ）
+├── gas/train-status-watcher.gs   # ジョルダンのメール監視（中央線・青梅線）。GAS本体は
+│                                  # script.google.comに手動で貼り付ける控え（このリポジトリからは実行されない）
+├── .github/workflows/
+│   ├── train.yml                 # 「運行情報の更新」（銀座線・5分ごとcron）
+│   └── train-mail.yml            # 「運行情報の更新（ジョルダンのメール検知）」（中央線・青梅線・GASからのdispatch）
 ├── README.md                      # セットアップ手順
 └── HANDOFF.md                      # このファイル
 ```
@@ -216,7 +273,9 @@ python3 -m http.server 8000
 - [x] タスク（Google Tasks・今日ぶんだけ）
 - [x] 今日の予定（広め）・これからの一週間
 - [x] 相場6銘柄（TradingViewウィジェット） + チャートリンク
-- [x] 運行情報（中央線・青梅線・銀座線）：リンク＋5分ごとの色分け
+- [x] 運行情報：銀座線はリンク＋5分ごとの色分け（ライブ）
+- [ ] 運行情報：中央線・青梅線はコード実装済みだが、ジョルダンのメール検知が
+      未セットアップのため実際にはまだ色が付かない（下記「未完了・次にやること」2番）
 - [x] `?demo=1` デモモード
 - [x] 取得失敗時のステータス表示（ヘッダー右）
 - [x] 本番デプロイ（公開リポジトリ・Pages・OAuth）
@@ -229,32 +288,30 @@ python3 -m http.server 8000
 （電源を入れ直した時に一回押すだけ）が、要件定義の「常時表示で放置」からは
 少しずれている。時間があるときに原因を調べる。
 
-### 2. 中央線・青梅線（JR東日本）はライブ検知できていない（現状把握・保留）
+### 2. 中央線・青梅線：ジョルダンのメール検知セットアップが未実施（優先度高・Hide側の作業待ち）
 
-`traininfo.jreast.co.jp` は **Akamai（Bot対策）によるIPブロック**で、GitHub Actionsの
-ランナーからのアクセスがHTTP 403で弾かれる（`server: AkamaiGHost` ヘッダーで確認済み、
-2026-08-07）。ローカル環境やブラウザからは通るが、GitHub Actions特有の問題。
+`traininfo.jreast.co.jp` の直接取得が **Akamai（Bot対策）によるIPブロック**で
+GitHub Actionsから使えなかった問題（`server: AkamaiGHost` ヘッダーで確認済み、
+2026-08-07）は、2026-08-08にジョルダンのメール検知方式へのコード側の切替は完了した
+（上記「運行情報：中央線・青梅線をジョルダンのメール検知に切替」参照）。
 
-UA偽装等でのさらなる回避は行わない方針（Bot検知の迂回に当たるため）。`fetch-train.mjs`は
-「取得できない＝色を変えない」設計なので実害は無いが、**中央線・青梅線のリンクは常に
-無色のまま**（銀座線だけライブで色が付く）。Hideに選択肢を提示し、「今のままでよい」と
-判断済み（2026-08-07）。
+ただし**実際に動き出すには、まだHide側の手動セットアップが5ステップ残っている**
+（README.md「4. 運行情報（ジョルダンのメール検知）を設定する」）。これが終わるまでは
+`train-mail.json`が存在しないため、中央線・青梅線のリンクは今まで通り無色のまま
+（フロント側は「取れない＝平常運転」と決めつけない設計なので、実害はなく安全側に倒れる）。
 
-代替案として **駅すぱあとAPI**（`https://docs.ekispert.com/v1/api/operationLine/service/rescuenow/information.html`、
-レスキューナウ提供の鉄道運行情報、JR・メトロ含め横断的にカバー）を調査した。無料
-トライアル制度があるが、申請フォーム経由の審査が必要で即座には使えないため保留。
-やる気が出たら:
+セットアップが終わったら、最初の実メールの件名・本文を見て
+`gas/train-status-watcher.gs`の`SEARCH_QUERY`/`ROUTE_PATTERNS`/キーワード群が
+実物と合っているか確認・調整する作業も残っている（このスクリプトのコメント参照）。
 
-1. `https://api-info.ekispert.com/form/trial/` から無料トライアルを申請（Hideの操作が必要）
-2. APIキーを取得したら `GET /v1/json/operationLine/service/rescuenow/information?key=...` で
-   路線ごとの運行情報が取れる（`status`属性で平常/異常を判定）
-3. `scripts/fetch-train.mjs` を駅すぱあとAPI呼び出しに差し替える（中央線・青梅線・銀座線を
-   まとめて1つのAPIから取れる可能性が高く、東京メトロ側の個別実装も統合できるかもしれない）
-4. APIキーは `EKISPERT_API_KEY` のようなGitHub Secretsに置く
+**駅すぱあとAPI**（`https://docs.ekispert.com/v1/api/operationLine/service/rescuenow/information.html`、
+レスキューナウ提供、JR・メトロ横断カバー）は代替案として調査済みだが、無料トライアルが
+審査制で即座には使えないため保留のまま。ジョルダン方式がうまく機能しなかった場合の
+セカンドオプションとして記録だけ残しておく（申請: `https://api-info.ekispert.com/form/trial/`）。
 
 `scripts/fetch-train.mjs`には`DEBUG_TRAIN`環境変数でレスポンスヘッダー・本文を
-ログ出力するデバッグコードを残してある（`.github/workflows/train.yml`のenv:に
-`DEBUG_TRAIN: '1'`を足せば有効化できる）。
+ログ出力するデバッグコードを残してある（銀座線取得用。`.github/workflows/train.yml`の
+env:に`DEBUG_TRAIN: '1'`を足せば有効化できる）。
 
 ### 3. 時計のタイムゾーン（優先度低）
 
@@ -280,8 +337,11 @@ PC設定に依存せず安全（Hideから「確実にJSTにしたい」とい�
 ## 注意（公開リポジトリ）
 
 - **予定・タスクの中身はリポジトリにコミットしない**（ブラウザ OAuth のみ）
-- cron がコミットするのは `train.json`（平常/異常の色分け情報のみ、路線名と状態のみ）
-- APIキー・Secretsは現状不要
+- cron / dispatch がコミットするのは `train.json`・`train-mail.json`（いずれも平常/異常の
+  色分け情報のみ、路線名と状態のみ。ジョルダンメールの本文そのものはリポジトリに残らない）
+- このリポジトリ自体にAPIキー・Secretsは現状不要。ただし**GitHub PATはGAS側の
+  Script Properties（Googleアカウント内）に保存される**ため、リポジトリのSecretsではない
+  形でクレデンシャルが1つ増えている点に注意
 
 ---
 

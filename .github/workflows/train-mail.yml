@@ -1,0 +1,68 @@
+name: 運行情報の更新（ジョルダンのメール検知：中央線・青梅線）
+
+# gas/train-status-watcher.gs（Gmail監視のGoogle Apps Script）から
+# repository_dispatch で呼ばれる。GASは新着メールの有無に関わらず
+# 5分おきに1回必ず送ってくる（ハートビート方式。詳細はgasファイル内コメント参照）。
+on:
+  repository_dispatch:
+    types: [train-mail]
+  workflow_dispatch:
+    inputs:
+      items_json:
+        description: '手動テスト用。items配列のJSON文字列'
+        required: false
+        default: '[{"id":"chuo","label":"中央線","ok":false,"reason":"手動テスト"},{"id":"ome","label":"青梅線","ok":false,"reason":"手動テスト"}]'
+
+concurrency:
+  group: train-mail-data
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: train-mail.json を組み立てる
+        env:
+          CLIENT_ITEMS_JSON: ${{ toJson(github.event.client_payload.items) }}
+          INPUT_ITEMS_JSON: ${{ inputs.items_json }}
+        run: |
+          set -euo pipefail
+          # repository_dispatch 経由なら client_payload.items、
+          # workflow_dispatch（手動テスト）なら inputs.items_json を使う。
+          if [ "$CLIENT_ITEMS_JSON" != "null" ] && [ -n "$CLIENT_ITEMS_JSON" ]; then
+            echo "$CLIENT_ITEMS_JSON" > items.json
+          else
+            echo "$INPUT_ITEMS_JSON" > items.json
+          fi
+          node -e '
+            const items = JSON.parse(require("fs").readFileSync("items.json", "utf8"));
+            const payload = { updatedAt: new Date().toISOString(), items };
+            require("fs").writeFileSync("train-mail.json", JSON.stringify(payload, null, 2) + "\n");
+          '
+          rm items.json
+
+      - name: data ブランチへ上書きする
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          # 既存の train.json（銀座線・train.ymlが書く）を data ブランチから引き継ぎ、
+          # train-mail.json だけを追加/上書きする（同じ data ブランチを2つの
+          # ワークフローが別ファイルで共有するため、他方のファイルを消さないようにする）。
+          git fetch origin data:data 2>/dev/null || true
+          tree_entries="100644 blob $(git hash-object -w train-mail.json)\ttrain-mail.json"
+          if git show data:train.json > /tmp/train.json 2>/dev/null; then
+            blob2=$(git hash-object -w /tmp/train.json)
+            tree_entries="$tree_entries\n100644 blob $blob2\ttrain.json"
+          fi
+          tree=$(printf "$tree_entries\n" | git mktree)
+          commit=$(git commit-tree "$tree" -m "train-mail data $(date -u +%Y-%m-%dT%H:%M:%SZ)")
+          git push -f origin "$commit:refs/heads/data"
