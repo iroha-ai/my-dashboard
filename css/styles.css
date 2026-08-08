@@ -327,7 +327,7 @@ body {
   border-radius: var(--radius);
   padding: 10px 14px;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr);
   grid-template-rows: auto auto auto;
   column-gap: 14px;
   align-items: baseline;
@@ -340,7 +340,16 @@ body {
   letter-spacing: 0.08em;
 }
 
+.weather-icon {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 34px;
+  line-height: 1;
+  align-self: center;
+}
+
 .weather-temp {
+  grid-column: 2;
   grid-row: 2;
   font-size: 38px;
   font-weight: 600;
@@ -355,6 +364,7 @@ body {
 }
 
 .weather-range {
+  grid-column: 3;
   grid-row: 2;
   font-size: 16px;
   color: var(--text-dim);

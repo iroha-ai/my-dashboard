@@ -235,7 +235,7 @@ async function fetchTemperatures(cities) {
   const url =
     'https://api.open-meteo.com/v1/forecast' +
     `?latitude=${lat}&longitude=${lon}` +
-    '&current=temperature_2m' +
+    '&current=temperature_2m,weather_code' +
     '&daily=temperature_2m_max,temperature_2m_min' +
     '&timezone=Asia%2FTokyo&forecast_days=1';
 
@@ -244,6 +244,7 @@ async function fetchTemperatures(cities) {
   const list = Array.isArray(data) ? data : [data];
   return list.map((entry) => ({
     current: entry?.current?.temperature_2m ?? null,
+    weatherCode: entry?.current?.weather_code ?? null,
     max: entry?.daily?.temperature_2m_max?.[0] ?? null,
     min: entry?.daily?.temperature_2m_min?.[0] ?? null,
   }));
@@ -303,6 +304,11 @@ async function fetchWarnings(cities) {
 function renderCard(city, temp, forecastText, warningCodes) {
   const card = el('div', 'weather-card');
   card.appendChild(el('div', 'weather-city', city.name));
+
+  // 今の天気をひと目で分かるように、大きめのアイコンを気温の横に置く
+  // （2026-08-08追加。詳しい予報文はこれまで通り下に残す）。
+  const iconNode = el('div', 'weather-icon', wmoIcon(temp?.weatherCode));
+  card.appendChild(iconNode);
 
   const tempNode = el('div', 'weather-temp');
   if (temp?.current !== null && temp?.current !== undefined) {
