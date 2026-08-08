@@ -542,6 +542,7 @@ body {
 }
 
 .today-item.is-visitor .today-title { color: var(--visitor); }
+.today-item.is-task .today-title { color: var(--ok); }
 .today-item.is-past { opacity: 0.4; }
 
 /* ---------- 一週間 ---------- */
@@ -645,6 +646,7 @@ body {
 }
 
 .week-event.is-visitor { color: var(--visitor); }
+.week-event.is-task { color: var(--ok); }
 
 .week-empty {
   font-size: 16px;

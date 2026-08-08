@@ -70,6 +70,11 @@ export const CONFIG = {
   // じょるだん（乗換案内）経由の予定も同様に、説明欄末尾のリンクで判定する（2026-08-09追加）。
   visitorDescriptionMarkers: ['Powered by 駅すぱあと', 'jorudan.jp'],
 
+  // Google Tasksが期限つきでカレンダー側にも疑似イベントとして出てくるものを見分けるマーカー
+  // （説明欄にGoogleが自動で入れる定型文。eventType: "FOCUS_TIME" で出てくる）。
+  // 「今日の予定」「これからの一週間」欄で、タスク由来の項目を緑色にするために使う（2026-08-09追加）。
+  taskDescriptionMarkers: ['tasks.google.com/task/'],
+
   // 一週間の予定を何日先まで出すか。
   weekDays: 7,
 

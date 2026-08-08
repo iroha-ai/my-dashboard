@@ -118,6 +118,9 @@ function normalize(event) {
     CONFIG.visitorKeywords.some((kw) => title.includes(kw)) ||
     CONFIG.visitorDescriptionMarkers.some((kw) => description.includes(kw));
 
+  // Google Tasksの疑似イベント（説明欄にGoogleの定型文が入る）かどうか。
+  const isTaskEvent = CONFIG.taskDescriptionMarkers.some((kw) => description.includes(kw));
+
   return {
     title,
     start,
@@ -125,6 +128,7 @@ function normalize(event) {
     allDay,
     location: event.location || '',
     isVisitor,
+    isTaskEvent,
   };
 }
 
@@ -169,7 +173,7 @@ function renderToday(events) {
   for (const ev of events) {
     const li = el(
       'li',
-      `today-item${ev.isVisitor ? ' is-visitor' : ''}${ev.end < now ? ' is-past' : ''}`
+      `today-item${ev.isVisitor ? ' is-visitor' : ''}${ev.isTaskEvent ? ' is-task' : ''}${ev.end < now ? ' is-past' : ''}`
     );
 
     li.appendChild(
@@ -210,7 +214,10 @@ function renderWeek(events, from) {
       box.appendChild(el('span', 'week-empty', '—'));
     } else {
       for (const ev of dayEvents) {
-        const chip = el('span', `week-event${ev.isVisitor ? ' is-visitor' : ''}`);
+        const chip = el(
+          'span',
+          `week-event${ev.isVisitor ? ' is-visitor' : ''}${ev.isTaskEvent ? ' is-task' : ''}`
+        );
         if (!ev.allDay) chip.appendChild(el('span', 't', formatTime(ev.start)));
         chip.appendChild(document.createTextNode(ev.title));
         box.appendChild(chip);
