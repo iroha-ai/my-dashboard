@@ -35,6 +35,50 @@ let accessToken = null;
 let tokenExpiresAt = 0;
 let requestSignIn = null;
 
+// トークンをlocalStorageにも持たせる（2026-08-09追加）。
+// これまではJS変数だけに保持していたため、ページを再読み込みするたびに
+// トークンがまだ有効（最長1時間）でも毎回サインインをやり直す必要があった。
+// リロード直後にlocalStorageから復元できれば、有効期限内は「接続する」を
+// 押し直さずに済む。読み取り専用スコープ（calendar/tasks/gmail.readonly）の
+// 短命トークンなので、常時表示のこの端末向けにはlocalStorage保持で許容している。
+const TOKEN_STORAGE_KEY = 'my-dashboard:google-token';
+
+function saveTokenToStorage() {
+  try {
+    localStorage.setItem(
+      TOKEN_STORAGE_KEY,
+      JSON.stringify({ accessToken, tokenExpiresAt })
+    );
+  } catch {
+    // localStorageが使えない環境（プライベートモード等）では黙って諦める。
+    // 保持できないだけで、従来どおり毎回サインインすれば動作は変わらない。
+  }
+}
+
+function loadTokenFromStorage() {
+  try {
+    const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!raw) return;
+    const { accessToken: savedToken, tokenExpiresAt: savedExpiry } = JSON.parse(raw);
+    if (savedToken && Date.now() < savedExpiry - 60_000) {
+      accessToken = savedToken;
+      tokenExpiresAt = savedExpiry;
+    }
+  } catch {
+    // 壊れた値が入っていた場合も無視して、通常のサインインフローに任せる。
+  }
+}
+
+function clearTokenStorage() {
+  try {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // 消せなくても実害はない（次回読み込み時に期限切れとして無視されるだけ）。
+  }
+}
+
+loadTokenFromStorage();
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
@@ -58,6 +102,10 @@ async function getAccessToken({ interactive = false } = {}) {
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CONFIG.googleClientId,
       scope: SCOPE,
+      // サードパーティCookie制限下でも無言の再取得（prompt:''）が通りやすくなる
+      // よう、FedCMベースの取得を試みる（2026-08-09追加）。非対応ブラウザでは
+      // 無視され、従来の挙動にフォールバックする。
+      use_fedcm_for_prompt: true,
       callback: () => {},
     });
   }
@@ -70,6 +118,7 @@ async function getAccessToken({ interactive = false } = {}) {
       }
       accessToken = response.access_token;
       tokenExpiresAt = Date.now() + Number(response.expires_in || 3600) * 1000;
+      saveTokenToStorage();
       resolve(accessToken);
     };
     tokenClient.error_callback = (err) => reject(new Error(err?.type || 'auth_failed'));
@@ -291,6 +340,7 @@ export async function updateCalendar(onStatus) {
   } catch (err) {
     console.error('カレンダーの取得に失敗', err);
     accessToken = null;
+    clearTokenStorage();
 
     // 黙って取り直せなかったときは、押せば繋ぎ直せる状態にしておく。
     requestSignIn = async () => {
