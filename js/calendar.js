@@ -223,6 +223,50 @@ function renderAll(rawEvents) {
   );
 }
 
+// Googleカレンダーの公式埋め込み（今日の予定欄）。src に渡すカレンダーIDは
+// primaryカレンダーの場合Hideのメールアドレスそのものになるため、
+// config.js等のリポジトリには書かず、既存のOAuthトークンでcalendars/primaryを
+// 取得し、実行時にブラウザ内だけで組み立てる（2026-08-08追加）。
+// 一度組み立てたら埋め込み自体はGoogle側で完結するので、以後は毎回やり直さない。
+let embedInitialized = false;
+
+async function ensureTodayEmbed(token) {
+  if (embedInitialized) return;
+  const iframe = document.getElementById('today-calendar-embed');
+  if (!iframe) return;
+
+  try {
+    const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary', {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error(`カレンダーID取得に失敗 (${res.status})`);
+    const data = await res.json();
+    if (!data.id) throw new Error('カレンダーIDが空です');
+
+    const params = new URLSearchParams({
+      src: data.id,
+      ctz: 'Asia/Tokyo',
+      mode: 'DAY',
+      showTitle: '0',
+      showNav: '1',
+      showDate: '1',
+      showPrint: '0',
+      showTabs: '0',
+      showCalendars: '0',
+      showTz: '0',
+    });
+    iframe.src = `https://calendar.google.com/calendar/embed?${params.toString()}`;
+    iframe.classList.remove('is-hidden');
+    document.getElementById('today-list')?.classList.add('is-hidden');
+    embedInitialized = true;
+  } catch (err) {
+    // 失敗しても today-list 側のテキスト表示がフォールバックになるので、
+    // ここでは黙ってログだけ出す（画面上のエラー表示は増やさない）。
+    console.error('今日の予定（Googleカレンダー埋め込み）の初期化に失敗', err);
+  }
+}
+
 function showCalendarMessage(message, isError) {
   for (const id of ['today-list', 'visitor-list', 'week-list']) {
     showMessage(document.getElementById(id), message, isError);
@@ -256,6 +300,7 @@ export async function updateCalendar(onStatus) {
     renderAll(await fetchEvents(token, from, to));
     onStatus?.('calendar', null, false);
     requestSignIn = null;
+    await ensureTodayEmbed(token);
     await updateTasks(token, onStatus);
   } catch (err) {
     console.error('カレンダーの取得に失敗', err);
@@ -268,6 +313,7 @@ export async function updateCalendar(onStatus) {
         renderAll(await fetchEvents(token, from, to));
         onStatus?.('calendar', null, false);
         requestSignIn = null;
+        await ensureTodayEmbed(token);
         await updateTasks(token, onStatus);
       } catch (retryErr) {
         // ポップアップを閉じた・許可しなかった等。押し直せる状態のまま、理由だけ出す。
