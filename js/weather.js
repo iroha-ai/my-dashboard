@@ -123,42 +123,6 @@ async function fetchWeeklyOpenMeteo(city) {
   }));
 }
 
-// 雨雲レーダー（Yahoo!静止画地図API）。緯度経度は週間天気と同じcity設定を使う。
-// APIキー（yahooMapAppId）が未登録の間は、代わりに案内文だけ出す（2026-08-08追加）。
-function renderRadar(city) {
-  const container = document.getElementById(`${city.domId}-radar`);
-  if (!container) return;
-  clear(container);
-
-  if (!CONFIG.yahooMapAppId) {
-    container.appendChild(
-      el('div', 'rain-radar-note', '雨雲レーダー: Yahoo!のappidが未設定（js/config.js参照）')
-    );
-    return;
-  }
-
-  // 静的な画像URLなのでブラウザにキャッシュされないよう、更新のたびに
-  // タイムスタンプを足す（fetchJsonの ?t= と同じ考え方）。
-  const params = new URLSearchParams({
-    appid: CONFIG.yahooMapAppId,
-    lat: String(city.lat),
-    lon: String(city.lon),
-    z: '10',
-    width: '272',
-    height: '220',
-    overlay: 'type:rainfall',
-    style: 'base:monotone',
-    _: String(Date.now()),
-  });
-
-  const img = document.createElement('img');
-  img.className = 'rain-radar-img';
-  img.alt = `${city.name}の雨雲レーダー`;
-  img.loading = 'lazy';
-  img.src = `https://map.yahooapis.jp/map/V1/static?${params.toString()}`;
-  container.appendChild(img);
-}
-
 function renderWeeklyAlerts(node, warningCodes) {
   clear(node);
   if (!warningCodes?.length) return;
@@ -217,8 +181,6 @@ async function updateWeeklyCity(city, onStatus) {
   const list = document.getElementById(`${city.domId}-weekly-list`);
   const alertsNode = document.getElementById(`${city.domId}-alerts`);
   if (!list) return; // index.html 側に対応する要素が無ければ何もしない
-
-  renderRadar(city); // 週間天気の取得結果に関わらず、緯度経度が分かれば描ける
 
   let days;
   try {
