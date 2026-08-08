@@ -66,6 +66,20 @@ body {
   color: var(--text-dim);
 }
 
+.topbar-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.updated-at {
+  font-size: 14px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .status-strip {
   display: flex;
   gap: 14px;

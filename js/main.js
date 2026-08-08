@@ -8,6 +8,29 @@ import { clear, el, runPeriodically } from './util.js';
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。
 const statuses = new Map();
+const updatedAt = new Map();
+
+function formatTime(date) {
+  return new Intl.DateTimeFormat('ja-JP', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
+function renderUpdatedAt() {
+  const node = document.getElementById('updated-at');
+  if (!node) return;
+
+  const time = (key) => updatedAt.has(key) ? formatTime(updatedAt.get(key)) : '--:--';
+  node.textContent =
+    `更新　予定等 ${time('calendar')}｜天気 ${time('weather')}｜運行 ${time('train')}`;
+}
+
+function markUpdated(key) {
+  updatedAt.set(key, new Date());
+  renderUpdatedAt();
+}
 
 function renderStatus() {
   const strip = document.getElementById('status-strip');
@@ -31,8 +54,28 @@ function setStatus(key, message, isError, action = null) {
   renderStatus();
 }
 
-startClock();
+async function updateAndStamp(key, update) {
+  let completed = false;
+  const trackStatus = (statusKey, message, isError, action = null) => {
+    setStatus(statusKey, message, isError, action);
+    if (statusKey === key) completed = !isError;
+  };
 
-runPeriodically(() => updateCalendar(setStatus), CONFIG.intervals.calendar);
-runPeriodically(() => updateWeather(setStatus), CONFIG.intervals.weather);
-runPeriodically(() => updateTrain(setStatus), CONFIG.intervals.train);
+  await update(trackStatus);
+  if (completed) markUpdated(key);
+}
+
+startClock();
+renderUpdatedAt();
+
+runPeriodically(async () => {
+  await updateAndStamp('calendar', updateCalendar);
+}, CONFIG.intervals.calendar);
+
+runPeriodically(async () => {
+  await updateAndStamp('weather', updateWeather);
+}, CONFIG.intervals.weather);
+
+runPeriodically(async () => {
+  await updateAndStamp('train', updateTrain);
+}, CONFIG.intervals.train);
