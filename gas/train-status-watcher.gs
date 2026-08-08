@@ -145,11 +145,16 @@ function dispatchHeartbeat(state) {
     return;
   }
 
+  // 【デバッグ用】トークンそのものは出さず、どのトークンが使われているかだけ分かる形で出す。
+  // repoは前後の見えない空白・改行がないか [] で囲って確認できるようにする。
+  Logger.log(`DEBUG repo=[${repo}] token_len=${token.length} token_head=${token.slice(0, 8)} token_tail=${token.slice(-4)}`);
+
   const url = `https://api.github.com/repos/${repo}/dispatches`;
   const payload = {
     event_type: 'train-mail',
     client_payload: { items },
   };
+  Logger.log(`DEBUG url=${url}`);
 
   const res = UrlFetchApp.fetch(url, {
     method: 'post',
@@ -163,6 +168,10 @@ function dispatchHeartbeat(state) {
   });
 
   const code = res.getResponseCode();
+  const headers = res.getAllHeaders();
+  Logger.log(`DEBUG code=${code} x-oauth-scopes=${headers['x-oauth-scopes'] || headers['X-OAuth-Scopes'] || '(なし)'} x-github-request-id=${headers['x-github-request-id'] || headers['X-GitHub-Request-Id'] || '(なし)'}`);
+  Logger.log(`DEBUG body=${res.getContentText().slice(0, 300)}`);
+
   if (code >= 300) {
     Logger.log(`GitHub dispatch 失敗: ${code} ${res.getContentText()}`);
   } else {
