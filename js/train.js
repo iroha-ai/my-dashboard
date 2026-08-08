@@ -63,17 +63,11 @@ export async function updateTrain(onStatus) {
     fetchSource(CONFIG.trainMailDataUrl),
   ]);
 
-  const result = applySource(trainData);
-  const mailResult = applySource(trainMailData);
-
-  if (!result.ok && !mailResult.ok) {
-    onStatus?.('train', null, false);
-    return;
-  }
-
-  if (result.stale || mailResult.stale) {
-    onStatus?.('train', '運行情報の更新が止まっている可能性', true);
-  } else {
-    onStatus?.('train', null, false);
-  }
+  // 「運行情報の更新が止まっている可能性」のヘッダー表示は行わない
+  // （2026-08-08、Hideの指定で非表示に）。ただし鮮度判定そのものは
+  // applySource側に残っている——古いデータでリンクの色を変えてしまう
+  // ことは引き続き避ける（stale/取得失敗のときは色を変えないだけ）。
+  applySource(trainData);
+  applySource(trainMailData);
+  onStatus?.('train', null, false);
 }
