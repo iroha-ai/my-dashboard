@@ -370,6 +370,7 @@ body {
 
 .pickup-item.is-visitor { border-left-color: var(--visitor); }
 .pickup-item.is-task { border-left-color: var(--ok); }
+.pickup-item.is-task .pickup-title { color: var(--ok); }
 
 .pickup-time {
   font-size: 15px;
