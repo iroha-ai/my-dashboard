@@ -14,7 +14,14 @@ import { fetchJson } from './util.js';
 //                        GAS側は新着メールが無くても5分おきに必ず1回送るので
 //                        （ハートビート方式）、updatedAtの鮮度判定はtrain.jsonと
 //                        同じロジックで扱える。
-const STALE_MS = 20 * 60 * 1000; // 5分おき更新のはずなので、20分以上更新が無ければ止まっていると疑う
+// 【2026-08-08 変更】当初は「5分おきcronのはずだから20分ノーレスなら止まっている」
+// という前提で20分にしていたが、実際にはGitHub Actionsのschedule cronは高頻度設定でも
+// GitHub側の都合で大きく間引かれ、train.yml(銀座線)の実測間隔は34〜85分だった
+// （GitHub公式ドキュメントにも高負荷時の遅延がある旨の記載あり。特に珍しい話ではない）。
+// GAS側のトリガー（中央線・青梅線）も同様に数分〜十数分ずれることがある。
+// 20分だとほぼ常時「止まっている」誤検知になっていたため、実測の最悪ケース(85分)に
+// 余裕を持たせて90分に緩めた。
+const STALE_MS = 90 * 60 * 1000;
 
 function applyState(id, state) {
   const link = document.querySelector(`.train-link[data-line="${id}"]`);
