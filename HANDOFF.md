@@ -1,7 +1,7 @@
 # my-dashboard 開発引き継ぎ（Claude Code 向け）
 
 作成日: 2026-08-07
-最終更新: 2026-08-08（運行情報：中央線・青梅線をジョルダンのメール検知方式に切替）
+最終更新: 2026-08-08（運行情報：中央線・青梅線のジョルダンのメール検知、エンドツーエンドで動作確認済み）
 
 ## これは何か
 
@@ -127,15 +127,32 @@ Akamaiブロック問題に対して、HideがJorudan方式への切替を明示
 - `js/train.js`: `train.json`（銀座線）と `train-mail.json`（中央線・青梅線）の
   両方を並行フェッチし、それぞれ独立に鮮度判定してリンクの色を反映する
 
-**⚠️ この切替はコードだけでは動かない。Hide側の手動セットアップが必要
-（README.md「4. 運行情報（ジョルダンのメール検知）を設定する」に手順あり）:**
+**✅ 2026-08-08、エンドツーエンドで動作確認済み。** `gh api`で直接dispatchを送って
+GitHub側が正しく反応することを確認したのち、GAS実機からの`checkJorudanMail`手動実行でも
+`train-mail.json`が`data`ブランチに生成されるところまで確認できた
+（`updatedAt: "2026-08-08T01:16:46.031Z"`時点のログ・GitHub Actions実行履歴で確認）。
+
+セットアップ手順（README.md「4. 運行情報（ジョルダンのメール検知）を設定する」）:
 
 1. ジョルダンの運行情報メールを、中央線（快速）・青梅線の2路線で登録する
-2. GitHubのFine-grained PATを発行する（対象リポジトリ限定・Contents: Read and write）
+2. GitHubのPersonal Access Tokenを発行する
 3. `script.google.com` で新規GASプロジェクトを作り、`gas/train-status-watcher.gs`
    の中身を貼り付ける
 4. Script Properties に `GITHUB_TOKEN` / `GITHUB_REPO` を設定する
 5. `installTrigger` を一度だけ手動実行し、Gmail読み取りを許可する
+
+**⚠️ ハマった点（2026-08-08）: PATはFine-grainedではなくclassicを使うこと。**
+最初はセキュリティ上の理由でFine-grained PAT（Contents: Read and write、対象リポジトリ限定）
+を案内したが、**GitHub側の既知の不具合で、Fine-grained PATだと`repository_dispatch`が
+204（成功）を返すのにワークフローが実際には実行されない**という事象に遭遇した
+（[GitHub Community Discussion #174782](https://github.com/orgs/community/discussions/174782)
+で同じ症状の報告あり）。**classic PAT（このリポジトリは公開なので`public_repo`スコープで足りる。
+`repo`スコープまでは不要）に切り替えたところ解決した。** また、この過程でScript Propertiesの
+値を書き換えたあと保存ボタンを押し忘れ、古いトークンのまま実行され続けていたことも一因として
+重なっていた可能性がある（値を変更したら保存されたか都度確認すること）。
+`dispatchHeartbeat`関数には、この切り分けのために追加した`DEBUG`ログ（送信先URL・
+レスポンスコード・`x-oauth-scopes`ヘッダー・repo/tokenの断片を毎回出力）を**そのまま残す**
+方針にした（Hide了承済み。何かあったときにすぐ切り分けられるように）。
 
 **⚠️ もう一つ未検証な点:** `gas/train-status-watcher.gs` 内の `SEARCH_QUERY` /
 `ROUTE_PATTERNS` / `ALERT_KEYWORDS` / `NORMAL_KEYWORDS` は、ジョルダンの公式ページの
@@ -274,8 +291,8 @@ python3 -m http.server 8000
 - [x] 今日の予定（広め）・これからの一週間
 - [x] 相場6銘柄（TradingViewウィジェット） + チャートリンク
 - [x] 運行情報：銀座線はリンク＋5分ごとの色分け（ライブ）
-- [ ] 運行情報：中央線・青梅線はコード実装済みだが、ジョルダンのメール検知が
-      未セットアップのため実際にはまだ色が付かない（下記「未完了・次にやること」2番）
+- [x] 運行情報：中央線・青梅線はジョルダンのメール検知で疎通確認済み（2026-08-08）。
+      実メールでのキーワード調整のみ未実施（下記「未完了・次にやること」2番）
 - [x] `?demo=1` デモモード
 - [x] 取得失敗時のステータス表示（ヘッダー右）
 - [x] 本番デプロイ（公開リポジトリ・Pages・OAuth）
@@ -288,21 +305,19 @@ python3 -m http.server 8000
 （電源を入れ直した時に一回押すだけ）が、要件定義の「常時表示で放置」からは
 少しずれている。時間があるときに原因を調べる。
 
-### 2. 中央線・青梅線：ジョルダンのメール検知セットアップが未実施（優先度高・Hide側の作業待ち）
+### 2. 中央線・青梅線：ジョルダンのメール検知は稼働中。実メールでの調整だけ残っている（優先度中）
 
 `traininfo.jreast.co.jp` の直接取得が **Akamai（Bot対策）によるIPブロック**で
 GitHub Actionsから使えなかった問題（`server: AkamaiGHost` ヘッダーで確認済み、
-2026-08-07）は、2026-08-08にジョルダンのメール検知方式へのコード側の切替は完了した
+2026-08-07）に対し、2026-08-08にジョルダンのメール検知方式へ切替・
+**Hide側のセットアップ（ジョルダン登録・PAT発行・GAS設定）も完了し、
+GAS→GitHub→`train-mail.json`のエンドツーエンドの疎通を確認済み**
 （上記「運行情報：中央線・青梅線をジョルダンのメール検知に切替」参照）。
 
-ただし**実際に動き出すには、まだHide側の手動セットアップが5ステップ残っている**
-（README.md「4. 運行情報（ジョルダンのメール検知）を設定する」）。これが終わるまでは
-`train-mail.json`が存在しないため、中央線・青梅線のリンクは今まで通り無色のまま
-（フロント側は「取れない＝平常運転」と決めつけない設計なので、実害はなく安全側に倒れる）。
-
-セットアップが終わったら、最初の実メールの件名・本文を見て
-`gas/train-status-watcher.gs`の`SEARCH_QUERY`/`ROUTE_PATTERNS`/キーワード群が
-実物と合っているか確認・調整する作業も残っている（このスクリプトのコメント参照）。
+残っているのは、**実際のジョルダンのメールが届いたときに、`gas/train-status-watcher.gs`の
+`SEARCH_QUERY`/`ROUTE_PATTERNS`/`ALERT_KEYWORDS`/`NORMAL_KEYWORDS`が実物の件名・本文と
+合っているかの確認・調整**だけ（このスクリプトのコメント参照）。それまでは`ok:false`
+（未確認）のままで、中央線・青梅線のリンクは無色のまま（想定どおりの安全側の挙動）。
 
 **駅すぱあとAPI**（`https://docs.ekispert.com/v1/api/operationLine/service/rescuenow/information.html`、
 レスキューナウ提供、JR・メトロ横断カバー）は代替案として調査済みだが、無料トライアルが

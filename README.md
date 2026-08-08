@@ -142,8 +142,12 @@ JR東日本の公式ページを直接取得できない。代わりに、ジョ
    対象路線は「中央線（快速）」「青梅線」の2つ。登録先は、次のGASプロジェクトが
    読みにいくGmailアドレス（Hideの通常のGmailアカウントでよい）。
 2. **GitHubのPersonal Access Tokenを発行する。**
-   Fine-grained PATで、対象リポジトリを `iroha-ai/my-dashboard` に限定し、
-   **Contents: Read and write** 権限を付与する（`repository_dispatch` の発火に必要）。
+   **classic PATを使うこと（Fine-grained PATは不可）。** Settings → Developer settings →
+   Personal access tokens → **Tokens (classic)** → Generate new token (classic)。
+   このリポジトリは公開なので、スコープは `repo` 全部ではなく **`public_repo`** だけで足りる。
+   ⚠️ Fine-grained PATは、Contents: Read and writeを付与しても`repository_dispatch`が
+   204（成功）を返すのに実際にはワークフローが動かないという既知の不具合があるため使わない
+   （詳細はHANDOFF.md「運行情報：中央線・青梅線をジョルダンのメール検知に切替」参照）。
 3. **Google Apps Scriptプロジェクトを作る。**
    <https://script.google.com> で新規プロジェクトを作成し、`gas/train-status-watcher.gs`
    の中身をまるごと貼り付ける。
