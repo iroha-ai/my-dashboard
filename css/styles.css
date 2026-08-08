@@ -106,12 +106,29 @@ body {
   flex-direction: column;
 }
 
+/* 3列(来客・外出/タスク/今日の予定と同じ比率)×3行のグリッド。2行目・3行目の
+   パネルは全部この列トラックに乗せて、列位置を確実に揃える（下記参照）。 */
 .center {
   display: grid;
+  grid-template-columns: 1fr 1fr 2.2fr;
   grid-template-rows: auto minmax(0, 1.2fr) minmax(0, 1fr);
   gap: var(--gap);
   min-height: 0;
 }
+
+.weather-row {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.visitor-block { grid-column: 1; grid-row: 2; }
+.task-block { grid-column: 2; grid-row: 2; }
+.today { grid-column: 3; grid-row: 2; }
+
+/* これからの一週間は「来客・外出＋タスク」と同じ幅（列1〜2）、
+   カレンダーは「今日の予定」と同じ列（列3）に揃える。 */
+.week { grid-column: 1 / 3; grid-row: 3; }
+.week-calendar { grid-column: 3; grid-row: 3; }
 
 .block-title {
   margin: 0 0 8px;
@@ -276,13 +293,7 @@ body {
 .train-link.is-normal { color: var(--ok); }
 
 /* ---------- 来客・外出 ＋ タスク ＋ 今日の予定（中央上段） ---------- */
-
-.pickup-today-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 2.2fr;
-  gap: var(--gap);
-  min-height: 0;
-}
+/* 列位置は .center 側の grid-template-columns で決まる（このセクション上部参照）。 */
 
 .pickup-block {
   min-height: 0;
@@ -479,15 +490,8 @@ body {
 .today-item.is-past { opacity: 0.4; }
 
 /* ---------- 一週間 ---------- */
-
-/* 「これからの一週間」と、その右隣りのGoogleカレンダー埋め込みを横並びにする
-   （2026-08-08、「今日の予定」欄から移動）。 */
-.week-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--gap);
-  min-height: 0;
-}
+/* 「これからの一週間」とカレンダーの横並び・列位置は .center 側で決まる
+   （.week / .week-calendar のgrid-column指定。このファイル上部参照）。 */
 
 .week-list {
   overflow-y: auto;
