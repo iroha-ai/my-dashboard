@@ -194,12 +194,10 @@ body {
 .weekly-date.is-sat { color: #6bb6ff; }
 .weekly-date.is-sun { color: #ff8b8b; }
 
-.weekly-label {
-  font-size: 15px;
-  color: var(--text);
+.weekly-icon {
+  font-size: 22px;
+  line-height: 1;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .weekly-temp {

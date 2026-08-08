@@ -52,6 +52,7 @@ function tidyWeatherText(text) {
 }
 
 // Open-Meteo の WMO 天気コードを、短い日本語ラベルに変換する。
+// （週間天気はアイコン表示なので、このラベルはtitle属性・代替テキストとしてのみ使う）
 function wmoLabel(code) {
   if (code === 0) return '晴れ';
   if (code <= 3) return '晴れ時々くもり';
@@ -62,6 +63,23 @@ function wmoLabel(code) {
   if (code <= 82) return 'にわか雨';
   if (code <= 86) return 'にわか雪';
   if (code <= 99) return '雷雨';
+  return '—';
+}
+
+// Open-Meteo の WMO 天気コードを、絵文字1文字のアイコンに変換する
+// （週間天気は文字だと視認性が悪いため、2026-08-08にアイコン表示へ変更）。
+// 区分の境界は wmoLabel と揃えている。
+function wmoIcon(code) {
+  if (code === null || code === undefined || code === '') return '—';
+  if (code === 0) return '☀️';
+  if (code <= 3) return '⛅';
+  if (code <= 48) return '🌫️';
+  if (code <= 57) return '🌦️';
+  if (code <= 67) return '🌧️';
+  if (code <= 77) return '❄️';
+  if (code <= 82) return '🌦️';
+  if (code <= 86) return '🌨️';
+  if (code <= 99) return '⛈️';
   return '—';
 }
 
@@ -131,7 +149,9 @@ function renderWeeklyDay(day, isToday) {
     `${d.getMonth() + 1}/${d.getDate()}（${weekdayLabel(d)}）`
   );
   li.appendChild(dateLabel);
-  li.appendChild(el('span', 'weekly-label', day.label || '—'));
+  const iconNode = el('span', 'weekly-icon', day.icon || '—');
+  iconNode.title = day.label || ''; // ホバー・スクリーンリーダー用に文言も残す
+  li.appendChild(iconNode);
 
   const temp = el('span', 'weekly-temp');
   if (day.max !== null && day.min !== null) {
@@ -190,6 +210,7 @@ async function updateWeeklyCity(city, onStatus) {
   days = days.map((day) => ({
     ...day,
     label: wmoLabel(day.weatherCode),
+    icon: wmoIcon(day.weatherCode),
   }));
 
   const warnings = await fetchWarnings([city]).catch(() => new Map());
