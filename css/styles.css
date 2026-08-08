@@ -253,9 +253,17 @@ body {
 /* リンクはそのまま公式ページへ。5分ごとに取得した簡易ステータスで、
    異常があるときだけリンクの色を変える（詳しい文言は出さない）。 */
 
-.train-title,
+/* 昭島↔鹿沼の間に一行分程度の間隔を空ける（2026-08-08、Hideの指定）。 */
 .weekly-title-2 {
-  margin-top: 14px;
+  margin-top: 40px;
+}
+
+/* 運行情報は週間天気に詰めて掲載せず、左欄の一番下にはっきり区切って置く
+   （2026-08-08、Hideの指定）。間隔を広めに取り、区切り線も足す。 */
+.train-title {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-edge);
 }
 
 .train-note {
