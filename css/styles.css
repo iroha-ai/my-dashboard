@@ -430,26 +430,6 @@ body {
 
 /* ---------- 今日の予定 ---------- */
 
-/* Googleカレンダーの公式埋め込み。閲覧専用だが日付の切替えは埋め込み側の
-   UIでできる（2026-08-08追加）。widget自体がほぼ白背景で描画するため、
-   パネルの暗色テーマとは馴染みきらない点は許容している。 */
-.today-calendar-embed {
-  flex: 1 1 auto;
-  width: 100%;
-  min-height: 0;
-  border: 0;
-  border-radius: var(--radius);
-  background: #fff;
-}
-
-.today-calendar-embed.is-hidden {
-  display: none;
-}
-
-.today-list.is-hidden {
-  display: none;
-}
-
 .today-list {
   list-style: none;
   margin: 0;
@@ -500,9 +480,38 @@ body {
 
 /* ---------- 一週間 ---------- */
 
+/* 「これからの一週間」と、その右隣りのGoogleカレンダー埋め込みを横並びにする
+   （2026-08-08、「今日の予定」欄から移動）。 */
+.week-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--gap);
+  min-height: 0;
+}
+
 .week-list {
   overflow-y: auto;
   flex: 1 1 auto;
+}
+
+/* Googleカレンダーの公式埋め込み。閲覧専用だが日付の切替えは埋め込み側の
+   UIでできる。widget自体がほぼ白背景で描画するため、パネルの暗色テーマとは
+   馴染みきらない点は許容している。 */
+.week-calendar-embed {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.week-calendar-embed.is-hidden {
+  display: none;
+}
+
+#week-calendar-placeholder.is-hidden {
+  display: none;
 }
 
 .week-day {

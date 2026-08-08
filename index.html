@@ -66,26 +66,34 @@
           今日の予定
           <span id="today-count" class="count"></span>
         </h2>
-        <!-- Googleカレンダーの公式埋め込み（閲覧専用・日付の切替えは可）。
-             srcはjs/calendar.jsが認証後に組み立てる（メールアドレスをリポジトリに
-             書かないため）。取得できるまで/失敗時は下の today-list を表示する。 -->
-        <iframe
-          id="today-calendar-embed"
-          class="today-calendar-embed is-hidden"
-          title="今日の予定（Googleカレンダー）"
-          loading="lazy"
-        ></iframe>
         <ul id="today-list" class="today-list">
           <li class="placeholder">読み込み中</li>
         </ul>
       </section>
     </section>
 
-    <section class="panel week">
-      <h2 class="block-title">これからの一週間</h2>
-      <div id="week-list" class="week-list">
-        <div class="placeholder">読み込み中</div>
-      </div>
+    <section class="week-row">
+      <section class="panel week">
+        <h2 class="block-title">これからの一週間</h2>
+        <div id="week-list" class="week-list">
+          <div class="placeholder">読み込み中</div>
+        </div>
+      </section>
+
+      <!-- Googleカレンダーの公式埋め込み（閲覧専用・週表示、日付の切替えは可）。
+           srcはjs/calendar.jsが認証後に組み立てる（メールアドレスをリポジトリに
+           書かないため）。2026-08-08、「今日の予定」から「これからの一週間」の
+           右隣りへ場所を移した。 -->
+      <section class="panel week-calendar">
+        <h2 class="block-title">カレンダー</h2>
+        <iframe
+          id="week-calendar-embed"
+          class="week-calendar-embed is-hidden"
+          title="カレンダー（Googleカレンダー）"
+          loading="lazy"
+        ></iframe>
+        <div id="week-calendar-placeholder" class="placeholder">読み込み中</div>
+      </section>
     </section>
   </div>
 
