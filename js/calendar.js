@@ -10,7 +10,7 @@ import {
   weekdayLabel,
 } from './util.js';
 import { renderTasks, showTasksMessage, updateTasks } from './tasks.js';
-import { updateNewsDigest } from './news.js?v=20260809-empty-digest-v2';
+import { updateNewsDigest } from './news.js?v=20260809-news-status';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 // タスク欄（Google Tasks）、定時ニュース欄（Gmail）も同じ画面に出すため、

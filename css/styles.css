@@ -564,6 +564,19 @@ body {
   flex: 1 1 auto;
 }
 
+.news-digest-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.news-digest-status {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 .news-digest-item {
   padding: 7px 0;
   border-bottom: 1px solid var(--panel-edge);

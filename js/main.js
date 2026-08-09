@@ -3,6 +3,7 @@ import { startClock } from './clock.js';
 import { updateCalendar } from './calendar.js';
 import { updateTrain } from './train.js';
 import { updateWeather } from './weather.js';
+import { updateDeliveryStatus } from './news.js?v=20260809-news-status';
 import { clear, el, runPeriodically } from './util.js';
 
 // 何かが取れていないとき、常時表示だと気づけない。
@@ -67,6 +68,10 @@ async function updateAndStamp(key, update) {
 
 startClock();
 renderUpdatedAt();
+
+runPeriodically(async () => {
+  await updateDeliveryStatus();
+}, CONFIG.intervals.calendar);
 
 runPeriodically(async () => {
   await updateAndStamp('calendar', updateCalendar);

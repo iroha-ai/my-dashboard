@@ -15,6 +15,41 @@ import { clear, el, showMessage } from './util.js';
 const NEWS_QUERY = 'subject:(定時ニュースダイジェスト) -テスト';
 const NEWS_FETCH_RESULTS = 30; // 0件配信を除外した後でも表示枠を確保する
 const NEWS_MAX_RESULTS = 10; // 欄に掲載するのは10件まで（2026-08-08、Hideの指定）
+const NEWS_STATUS_URL = './data/news-digest-status.json';
+
+function renderDeliveryStatus(status) {
+  const node = document.getElementById('news-digest-status');
+  if (!node) return;
+  if (status?.status !== 'no_news' || !status.scheduledAt) {
+    node.textContent = '';
+    return;
+  }
+  const date = new Date(status.scheduledAt);
+  if (Number.isNaN(date.getTime())) {
+    node.textContent = '';
+    return;
+  }
+  const label = new Intl.DateTimeFormat('ja-JP', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Tokyo',
+  }).format(date);
+  node.textContent = `${label}　送信ニュースなし`;
+}
+
+export async function updateDeliveryStatus() {
+  try {
+    const response = await fetch(`${NEWS_STATUS_URL}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`status ${response.status}`);
+    renderDeliveryStatus(await response.json());
+  } catch (err) {
+    console.warn('定時ニュースの配信状態を取得できませんでした', err);
+    renderDeliveryStatus(null);
+  }
+}
 
 function decodeBase64Url(data) {
   if (!data) return '';
@@ -134,6 +169,7 @@ function renderDigestList(items) {
 
 export async function updateNewsDigest(token, onStatus) {
   try {
+    await updateDeliveryStatus();
     const items = await fetchDigestList(token);
     renderDigestList(items);
     onStatus?.('news', null, false);

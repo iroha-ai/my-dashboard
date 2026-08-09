@@ -97,7 +97,10 @@
          メール1通＝1行、新しいものが上（js/news.js参照）。
          左位置は今日の予定の列に揃えている（.center参照）。 -->
     <section class="panel week-calendar">
-      <h2 class="block-title">定時ニュース</h2>
+      <h2 class="block-title news-digest-heading">
+        定時ニュース
+        <span id="news-digest-status" class="news-digest-status" aria-live="polite"></span>
+      </h2>
       <ul id="news-digest-list" class="news-digest-list">
         <li class="placeholder">読み込み中</li>
       </ul>
@@ -170,6 +173,6 @@
 
 </main>
 
-<script type="module" src="js/main.js?v=20260809-empty-digest-v2"></script>
+<script type="module" src="js/main.js?v=20260809-news-status"></script>
 </body>
 </html>
