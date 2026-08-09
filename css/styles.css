@@ -422,6 +422,27 @@ body {
   letter-spacing: 0.08em;
 }
 
+.weather-city-link {
+  width: fit-content;
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.weather-city-link::after {
+  content: ' ☔';
+  font-size: 13px;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+
+.weather-city-link:hover,
+.weather-city-link:focus-visible {
+  color: var(--accent);
+  border-color: currentColor;
+  outline: none;
+}
+
 .weather-icon {
   grid-column: 1;
   grid-row: 2;

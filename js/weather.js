@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js';
+import { CONFIG } from './config.js?v=20260809-rain-radar';
 import { clear, el, fetchJson, pad2, showMessage, weekdayLabel } from './util.js';
 
 // 気象庁の警報・注意報コード。表にない番号が来ても落とさず、番号のまま出す。
@@ -307,7 +307,13 @@ async function fetchWarnings(cities) {
 
 function renderCard(city, temp, forecastText, warningCodes) {
   const card = el('div', 'weather-card');
-  card.appendChild(el('div', 'weather-city', city.name));
+  const cityLink = el('a', 'weather-city weather-city-link', city.name);
+  cityLink.href = city.radarUrl;
+  cityLink.target = '_blank';
+  cityLink.rel = 'noopener';
+  cityLink.title = `${city.name}の雨雲レーダーを開く（Yahoo!天気・災害）`;
+  cityLink.setAttribute('aria-label', `${city.name}の雨雲レーダーをYahoo!天気・災害で開く`);
+  card.appendChild(cityLink);
 
   // 今の天気をひと目で分かるように、大きめのアイコンを気温の横に置く
   // （2026-08-08追加。詳しい予報文はこれまで通り下に残す）。
