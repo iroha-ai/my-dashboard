@@ -45,6 +45,7 @@ function findBodyPart(payload, mimeType) {
 // 表示しないだけにして、日時・件名の表示は壊さない（countArticlesがnullを返す）。
 function countArticles(htmlBody) {
   if (!htmlBody) return null;
+  if (/今回の新着重要情報はありません/.test(htmlBody)) return 0;
   const matches = htmlBody.match(/background:#1976d2/g);
   return matches ? matches.length : null;
 }
