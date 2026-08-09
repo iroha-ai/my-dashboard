@@ -13,6 +13,7 @@ import { clear, el, showMessage } from './util.js';
 // 1行には「日時・件名・ニュース件数」を並べる（2026-08-08、Hideの指定）。
 
 const NEWS_QUERY = 'subject:(定時ニュースダイジェスト) -テスト';
+const NEWS_FETCH_RESULTS = 30; // 0件配信を除外した後でも表示枠を確保する
 const NEWS_MAX_RESULTS = 10; // 欄に掲載するのは10件まで（2026-08-08、Hideの指定）
 
 function decodeBase64Url(data) {
@@ -72,7 +73,7 @@ async function fetchDigestMeta(token, id) {
 async function fetchDigestList(token) {
   const listUrl =
     'https://gmail.googleapis.com/gmail/v1/users/me/messages' +
-    `?q=${encodeURIComponent(NEWS_QUERY)}&maxResults=${NEWS_MAX_RESULTS}`;
+    `?q=${encodeURIComponent(NEWS_QUERY)}&maxResults=${NEWS_FETCH_RESULTS}`;
   const listRes = await fetch(listUrl, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
@@ -84,7 +85,10 @@ async function fetchDigestList(token) {
   const items = await Promise.all(ids.map((id) => fetchDigestMeta(token, id)));
   // Gmailのlistは基本的に新しい順で返るが、念のため internalDate でも並べ直す
   // （＝「新しいものを上にアペンドしていく」という指定に合わせる）。
-  return items.filter(Boolean).sort((a, b) => b.internalDate - a.internalDate);
+  return items
+    .filter((item) => item && item.count !== 0)
+    .sort((a, b) => b.internalDate - a.internalDate)
+    .slice(0, NEWS_MAX_RESULTS);
 }
 
 // 「定時ニュースダイジェスト 2026-08-07 16:16（日本時間）」を
