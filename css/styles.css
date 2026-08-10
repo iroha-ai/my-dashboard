@@ -163,16 +163,6 @@ body {
   letter-spacing: 0;
 }
 
-/* 「タスク」「今日の予定」の見出しのみ文字サイズを80%に縮小（2026-08-10） */
-.task-block .block-title,
-.today .block-title {
-  font-size: 12.8px;
-}
-
-.today .block-title .count {
-  font-size: 11.2px;
-}
-
 .placeholder {
   color: var(--text-faint);
   font-size: 16px;
@@ -561,7 +551,7 @@ body {
 .today-main { min-width: 0; }
 
 .today-title {
-  font-size: 19px;
+  font-size: 28px;
   font-weight: 600;
   word-break: break-word;
 }
