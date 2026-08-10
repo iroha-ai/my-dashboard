@@ -527,7 +527,7 @@ body {
 
 .today-item {
   display: grid;
-  grid-template-columns: 165px minmax(0, 1fr);
+  grid-template-columns: 150px minmax(0, 1fr);
   gap: 16px;
   padding: 8px 0;
   border-bottom: 1px solid var(--panel-edge);
@@ -537,27 +537,27 @@ body {
 .today-item:last-child { border-bottom: none; }
 
 .today-time {
-  font-size: 26px;
+  font-size: 15px;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .today-time.is-allday {
-  font-size: 20px;
+  font-size: 15px;
   color: var(--text-dim);
 }
 
 .today-main { min-width: 0; }
 
 .today-title {
-  font-size: 28px;
+  font-size: 19px;
   font-weight: 600;
   word-break: break-word;
 }
 
 .today-place {
-  font-size: 19px;
+  font-size: 15px;
   color: var(--text-dim);
   word-break: break-word;
 }
