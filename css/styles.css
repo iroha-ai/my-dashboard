@@ -375,6 +375,11 @@ body {
 .pickup-item.is-task.is-done { opacity: 0.5; }
 .pickup-item.is-task.is-done .pickup-title { text-decoration: line-through; }
 
+/* タスクは来客・外出よりもう一回り小さく（2026-08-10） */
+.pickup-item.is-task .pickup-time { font-size: 13px; }
+.pickup-item.is-task .pickup-title { font-size: 17px; }
+.pickup-item.is-task .pickup-place { font-size: 13px; }
+
 .pickup-time {
   font-size: 15px;
   color: var(--text-dim);
@@ -540,27 +545,27 @@ body {
 .today-item:last-child { border-bottom: none; }
 
 .today-time {
-  font-size: 15px;
+  font-size: 13px;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .today-time.is-allday {
-  font-size: 15px;
+  font-size: 13px;
   color: var(--text-dim);
 }
 
 .today-main { min-width: 0; }
 
 .today-title {
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 400;
   word-break: break-word;
 }
 
 .today-place {
-  font-size: 15px;
+  font-size: 13px;
   color: var(--text-dim);
   word-break: break-word;
 }
