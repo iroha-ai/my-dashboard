@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js?v=20260809-rain-radar';
 import { startClock } from './clock.js';
-import { updateCalendar } from './calendar.js';
+import { updateCalendar } from './calendar.js?v=20260810-done-tasks2';
 import { updateTrain } from './train.js';
 import { updateWeather } from './weather.js?v=20260809-rain-radar';
 import { updateDeliveryStatus } from './news.js?v=20260809-news-status';

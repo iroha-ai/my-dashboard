@@ -9,7 +9,7 @@ import {
   startOfDay,
   weekdayLabel,
 } from './util.js';
-import { renderTasks, showTasksMessage, updateTasks } from './tasks.js';
+import { renderTasks, showTasksMessage, updateTasks } from './tasks.js?v=20260810-done-tasks2';
 import { updateNewsDigest } from './news.js?v=20260809-news-status';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
