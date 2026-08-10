@@ -2,9 +2,11 @@ import { clear, el, isSameDay, showMessage } from './util.js';
 
 // Google Tasks（デフォルトのタスクリストのみ）。calendar.js が取得した
 // アクセストークンをそのまま使い回すので、ここでは認証を持たない。
+// showHidden=true が必要: カレンダー／Tasksアプリ側（純正クライアント）で
+// 完了にしたタスクは「hidden」扱いになり、showCompletedだけでは返ってこない。
 const TASKS_URL =
   'https://tasks.googleapis.com/tasks/v1/lists/@default/tasks' +
-  '?showCompleted=true&showHidden=false&maxResults=100';
+  '?showCompleted=true&showHidden=true&maxResults=100';
 
 function renderTask(task) {
   const li = el('li');
