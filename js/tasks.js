@@ -4,11 +4,12 @@ import { clear, el, isSameDay, showMessage } from './util.js';
 // アクセストークンをそのまま使い回すので、ここでは認証を持たない。
 const TASKS_URL =
   'https://tasks.googleapis.com/tasks/v1/lists/@default/tasks' +
-  '?showCompleted=false&showHidden=false&maxResults=100';
+  '?showCompleted=true&showHidden=false&maxResults=100';
 
 function renderTask(task) {
   const li = el('li');
-  const item = el('div', 'pickup-item is-task');
+  const isDone = task.status === 'completed';
+  const item = el('div', `pickup-item is-task${isDone ? ' is-done' : ''}`);
 
   item.appendChild(el('div', 'pickup-title', task.title || '(タイトルなし)'));
   if (task.notes) {
@@ -24,9 +25,10 @@ export function renderTasks(rawTasks) {
   if (!node) return;
 
   // 来客・外出と同じく今日ぶんだけに絞る。期限なしのタスクはここには出さない。
+  // 完了済みも今日締切なら表示は残し、renderTask側で取り消し線を付ける。
   const today = new Date();
   const tasks = rawTasks.filter(
-    (t) => t.status !== 'completed' && t.due && isSameDay(new Date(t.due), today)
+    (t) => t.due && isSameDay(new Date(t.due), today)
   );
 
   clear(node);

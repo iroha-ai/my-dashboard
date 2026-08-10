@@ -372,6 +372,9 @@ body {
 .pickup-item.is-task { border-left-color: var(--ok); }
 .pickup-item.is-task .pickup-title { color: var(--ok); }
 
+.pickup-item.is-task.is-done { opacity: 0.5; }
+.pickup-item.is-task.is-done .pickup-title { text-decoration: line-through; }
+
 .pickup-time {
   font-size: 15px;
   color: var(--text-dim);
