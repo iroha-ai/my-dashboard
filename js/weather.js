@@ -338,7 +338,20 @@ function renderCard(city, temp, forecastText, warningCodes) {
   card.appendChild(iconNode);
 
   const level = warningLevel(warningCodes);
-  const tempNode = el('div', `weather-temp${level ? ` is-${level}` : ''}`);
+  const tempClass = `weather-temp${level ? ` is-${level}` : ''}`;
+  // 警報・注意報が出ているときだけ、気温部分を気象庁の詳細ページへのリンクにする
+  // （クリックで何の警報・注意報かを確認できるようにするため）。何もなければ従来通り div のまま。
+  let tempNode;
+  if (level) {
+    tempNode = el('a', tempClass);
+    tempNode.href = `https://www.jma.go.jp/bosai/warning/#area_type=class20s&area_code=${city.warningArea}&lang=jp`;
+    tempNode.target = '_blank';
+    tempNode.rel = 'noopener';
+    tempNode.title = `${city.name}の警報・注意報の詳細を気象庁で確認`;
+    tempNode.setAttribute('aria-label', `${city.name}の警報・注意報の詳細を気象庁で確認`);
+  } else {
+    tempNode = el('div', tempClass);
+  }
   if (temp?.current !== null && temp?.current !== undefined) {
     tempNode.appendChild(document.createTextNode(temp.current.toFixed(1)));
     tempNode.appendChild(el('span', 'unit', '℃'));

@@ -491,6 +491,23 @@ body {
   color: inherit;
 }
 
+/* 警報・注意報が出ているときは気温がクリック可能なリンク（<a>）になる。
+   下線は消し、色は is-advisory / is-warning の色をそのまま使う。
+   ホバー・フォーカス時にだけ点線の下線でクリックできることを示す。 */
+.weather-temp[href] {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s ease;
+}
+
+.weather-temp[href]:hover,
+.weather-temp[href]:focus-visible {
+  border-color: currentColor;
+  outline: none;
+}
+
 .weather-range {
   grid-column: 3;
   grid-row: 2;
