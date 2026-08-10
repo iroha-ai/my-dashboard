@@ -527,7 +527,7 @@ body {
 
 .today-item {
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
+  grid-template-columns: 165px minmax(0, 1fr);
   gap: 16px;
   padding: 8px 0;
   border-bottom: 1px solid var(--panel-edge);
