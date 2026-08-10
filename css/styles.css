@@ -11,6 +11,7 @@
   --accent: #4aa8ff;
   --visitor: #ffb454;
   --warn: #ff6b6b;
+  --caution: #ffd23f;
   --ok: #3fb950;
 
   --gap: 14px;
@@ -472,6 +473,22 @@ body {
   font-size: 20px;
   color: var(--text-dim);
   margin-left: 2px;
+}
+
+/* 注意報が出ている地区は黄色、警報（特別警報含む）が出ている地区は赤に、
+   気温を色分けする。注意報・警報が両方あれば警報（赤）を優先表示する
+   （js/weather.js の warningLevel 参照）。 */
+.weather-temp.is-advisory {
+  color: var(--caution);
+}
+
+.weather-temp.is-warning {
+  color: var(--warn);
+}
+
+.weather-temp.is-advisory .unit,
+.weather-temp.is-warning .unit {
+  color: inherit;
 }
 
 .weather-range {

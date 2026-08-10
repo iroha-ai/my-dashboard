@@ -46,6 +46,23 @@ function isEmergency(code) {
   return Number(code) >= 30;
 }
 
+// 警報・注意報コードから、気温表示の色分けに使う重大度を判定する。
+// 特別警報（30番台）・警報（02〜09）は「警報」扱いで赤、
+// 注意報（10〜29）は「注意報」扱いで黄色。両方あれば警報（赤）を優先する。
+function warningLevel(codes) {
+  if (!codes?.length) return null;
+  const hasWarning = codes.some((code) => {
+    const num = Number(code);
+    return num >= 30 || (num >= 2 && num <= 9);
+  });
+  if (hasWarning) return 'warning';
+  const hasAdvisory = codes.some((code) => {
+    const num = Number(code);
+    return num >= 10 && num <= 29;
+  });
+  return hasAdvisory ? 'advisory' : null;
+}
+
 // 気象庁の天気文は全角スペースで区切られているので、表示用に詰める。
 function tidyWeatherText(text) {
   return (text || '').replace(/\u3000/g, '').trim();
@@ -320,7 +337,8 @@ function renderCard(city, temp, forecastText, warningCodes) {
   const iconNode = el('div', 'weather-icon', wmoIcon(temp?.weatherCode));
   card.appendChild(iconNode);
 
-  const tempNode = el('div', 'weather-temp');
+  const level = warningLevel(warningCodes);
+  const tempNode = el('div', `weather-temp${level ? ` is-${level}` : ''}`);
   if (temp?.current !== null && temp?.current !== undefined) {
     tempNode.appendChild(document.createTextNode(temp.current.toFixed(1)));
     tempNode.appendChild(el('span', 'unit', '℃'));
