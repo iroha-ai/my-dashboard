@@ -783,3 +783,101 @@ body {
   font-size: 15px;
   color: var(--warn);
 }
+
+/* ---------- スマホ表示（試作、2026-08-11追加） ----------
+   会社モニター向けの1画面固定レイアウト（3列グリッド・内部スクロール）は
+   幅の狭い画面では前提が崩れるため、この幅以下ではページ全体を縦積み・
+   縦スクロールに切り替える。表示内容・取得ロジックは変えず、並び順と
+   見た目だけを調整する（display:contentsは使わず、.layoutと.centerを
+   それぞれ独立にflex化する2段構えなので、並び順は「.center内の元の順序
+   （天気→来客・外出→タスク→今日の予定→一週間→定時ニュース）が先、
+   その後に週間天気・運行情報・リンクの左サイドバー、最後に相場」になる）。 */
+
+@media (max-width: 820px) {
+  html, body {
+    height: auto;
+    min-height: 100%;
+  }
+
+  body {
+    overflow: visible;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .clock-time {
+    font-size: 30px;
+  }
+
+  .clock-date {
+    font-size: 16px;
+  }
+
+  .topbar-meta {
+    align-items: flex-start;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+
+  /* 優先順位: 今日の予定まわり（.center）→ 週間天気・運行情報・リンク
+     （.weekly-panel）→ 相場（.market）。会社モニターでは相場を右列に
+     常時出しているが、スマホでチェックする用途では予定・運行情報を
+     先に見たいはずという判断で最後に回している。 */
+  .center { order: 1; }
+  .weekly-panel { order: 2; }
+  .market { order: 3; }
+
+  .panel {
+    overflow: visible;
+  }
+
+  .center {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    height: auto;
+  }
+
+  /* 3列グリッド用に指定していた列・行位置を解除し、.center内はDOM順
+     （天気→来客・外出→タスク→今日の予定→一週間→定時ニュース）で縦積みにする。 */
+  .weather-row,
+  .visitor-block,
+  .task-block,
+  .today,
+  .week,
+  .week-calendar {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  /* 150pxだと、スマホ幅で3枚中1枚だけ端数列に残り、その中の気温表示が
+     カード枠の外にはみ出す（グリッドの空いた列に中身が溢れる）不具合が
+     出たため、1枚がしっかり収まる幅を最小値にして自然に列数が決まるようにした。 */
+  .weather-row {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  /* 内部スクロールのリストは、ページ全体スクロールに任せて展開表示にする
+     （モニター表示ではパネルの高さが決まっているための内部スクロールだが、
+     スマホでは不要でむしろ読みにくい）。 */
+  .weekly-list,
+  .pickup-list,
+  .today-list,
+  .week-list,
+  .news-digest-list,
+  .market-widgets {
+    overflow-y: visible;
+    flex: 0 0 auto;
+  }
+
+  .weekly-panel {
+    overflow-y: visible;
+  }
+}
