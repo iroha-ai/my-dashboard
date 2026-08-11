@@ -46,21 +46,30 @@ function isEmergency(code) {
   return Number(code) >= 30;
 }
 
-// 警報・注意報コードから、気温表示の色分けに使う重大度を判定する。
+// 警報・注意報コード1件の重大度を判定する。
 // 特別警報（30番台）・警報（02〜09）は「警報」扱いで赤、
-// 注意報（10〜29）は「注意報」扱いで黄色。両方あれば警報（赤）を優先する。
+// 注意報（10〜29）は「注意報」扱いで黄色。
+function levelForCode(code) {
+  const num = Number(code);
+  if (num >= 30 || (num >= 2 && num <= 9)) return 'warning';
+  if (num >= 10 && num <= 29) return 'advisory';
+  return null;
+}
+
+// 気温表示の色分けに使う、複数コード中でもっとも重い重大度。
+// 注意報・警報が両方あれば警報（赤）を優先する。
 function warningLevel(codes) {
   if (!codes?.length) return null;
-  const hasWarning = codes.some((code) => {
-    const num = Number(code);
-    return num >= 30 || (num >= 2 && num <= 9);
-  });
-  if (hasWarning) return 'warning';
-  const hasAdvisory = codes.some((code) => {
-    const num = Number(code);
-    return num >= 10 && num <= 29;
-  });
-  return hasAdvisory ? 'advisory' : null;
+  if (codes.some((code) => levelForCode(code) === 'warning')) return 'warning';
+  if (codes.some((code) => levelForCode(code) === 'advisory')) return 'advisory';
+  return null;
+}
+
+// 警報・注意報チップ1件分のクラス名。注意報は黄色、警報は赤（levelForCode）、
+// 特別警報はさらに強調（isEmergency）。
+function alertChipClass(code) {
+  const level = levelForCode(code);
+  return `alert-chip${level ? ` is-${level}` : ''}${isEmergency(code) ? ' is-emergency' : ''}`;
 }
 
 // 気象庁の天気文は全角スペースで区切られているので、表示用に詰める。
@@ -145,13 +154,7 @@ function renderWeeklyAlerts(node, warningCodes) {
   if (!warningCodes?.length) return;
 
   for (const code of warningCodes) {
-    node.appendChild(
-      el(
-        'span',
-        `alert-chip${isEmergency(code) ? ' is-emergency' : ''}`,
-        warningName(code)
-      )
-    );
+    node.appendChild(el('span', alertChipClass(code), warningName(code)));
   }
 }
 
@@ -373,12 +376,7 @@ function renderCard(city, temp, forecastText, warningCodes) {
   const alerts = el('div', 'weather-alerts');
   if (warningCodes && warningCodes.length) {
     for (const code of warningCodes) {
-      const chip = el(
-        'span',
-        `alert-chip${isEmergency(code) ? ' is-emergency' : ''}`,
-        warningName(code)
-      );
-      alerts.appendChild(chip);
+      alerts.appendChild(el('span', alertChipClass(code), warningName(code)));
     }
   } else {
     alerts.appendChild(el('span', 'alert-none', '注意報なし'));

@@ -537,13 +537,21 @@ body {
   gap: 6px;
 }
 
+/* 注意報は黄色、警報（特別警報含む）は赤で文字色を分ける
+   （js/weather.js の levelForCode 参照）。 */
 .alert-chip {
   font-size: 14px;
   padding: 1px 8px;
   border-radius: 4px;
+  background: rgba(255, 210, 63, 0.15);
+  color: #ffd23f;
+  border: 1px solid rgba(255, 210, 63, 0.4);
+}
+
+.alert-chip.is-warning {
   background: rgba(255, 107, 107, 0.15);
   color: #ff9b9b;
-  border: 1px solid rgba(255, 107, 107, 0.4);
+  border-color: rgba(255, 107, 107, 0.4);
 }
 
 .alert-chip.is-emergency {
