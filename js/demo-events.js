@@ -49,6 +49,12 @@ export function DEMO_EVENTS() {
       end: { dateTime: at(0, 18, 0) },
     },
     {
+      summary: '移動（本社→工場）',
+      location: '',
+      start: { dateTime: at(1, 9, 0) },
+      end: { dateTime: at(1, 10, 0) },
+    },
+    {
       summary: '健康診断の運用確認',
       location: '',
       start: { dateTime: at(1, 11, 0) },

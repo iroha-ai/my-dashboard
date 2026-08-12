@@ -161,11 +161,16 @@ function normalize(event) {
   const title = event.summary || '(件名なし)';
   const description = event.description || '';
 
+  // タイトルに「移動」を含む予定は紫扱い。来客・外出（駅すぱあと等の自動生成含む）とは
+  // 別枠にするため、来客・外出の判定より先に見て、該当したらそちらを優先する。
+  const isTransit = CONFIG.transitKeywords.some((kw) => title.includes(kw));
+
   // タイトルのキーワードに加え、説明欄に駅すぱあと（経路検索）由来の
   // 自動生成マーカーがある予定（＝移動・外出の予定）も来客・外出として拾う。
   const isVisitor =
-    CONFIG.visitorKeywords.some((kw) => title.includes(kw)) ||
-    CONFIG.visitorDescriptionMarkers.some((kw) => description.includes(kw));
+    !isTransit &&
+    (CONFIG.visitorKeywords.some((kw) => title.includes(kw)) ||
+      CONFIG.visitorDescriptionMarkers.some((kw) => description.includes(kw)));
 
   // Google Tasksの疑似イベント（説明欄にGoogleの定型文が入る）かどうか。
   const isTaskEvent = CONFIG.taskDescriptionMarkers.some((kw) => description.includes(kw));
@@ -177,6 +182,7 @@ function normalize(event) {
     allDay,
     location: event.location || '',
     isVisitor,
+    isTransit,
     isTaskEvent,
   };
 }
@@ -222,7 +228,7 @@ function renderToday(events) {
   for (const ev of events) {
     const li = el(
       'li',
-      `today-item${ev.isVisitor ? ' is-visitor' : ''}${ev.isTaskEvent ? ' is-task' : ''}${ev.end < now ? ' is-past' : ''}`
+      `today-item${ev.isVisitor ? ' is-visitor' : ''}${ev.isTransit ? ' is-transit' : ''}${ev.isTaskEvent ? ' is-task' : ''}${ev.end < now ? ' is-past' : ''}`
     );
 
     li.appendChild(
@@ -265,7 +271,7 @@ function renderWeek(events, from) {
       for (const ev of dayEvents) {
         const chip = el(
           'span',
-          `week-event${ev.isVisitor ? ' is-visitor' : ''}${ev.isTaskEvent ? ' is-task' : ''}`
+          `week-event${ev.isVisitor ? ' is-visitor' : ''}${ev.isTransit ? ' is-transit' : ''}${ev.isTaskEvent ? ' is-task' : ''}`
         );
         if (!ev.allDay) chip.appendChild(el('span', 't', formatTime(ev.start)));
         chip.appendChild(document.createTextNode(ev.title));

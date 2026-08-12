@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=20260809-rain-radar';
+import { CONFIG } from './config.js?v=20260812-transit-purple';
 import { clear, el, fetchJson, pad2, showMessage, weekdayLabel } from './util.js';
 
 // 気象庁の警報・注意報コード。表にない番号が来ても落とさず、番号のまま出す。
