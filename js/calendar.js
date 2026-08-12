@@ -187,6 +187,20 @@ function normalize(event) {
   };
 }
 
+// Google Calendar の終日予定は end.date が「翌日の 00:00」（終了日は含まない）になる。
+// 開始日だけで判定すると、連日の休暇や日またぎ予定が2日目から消えてしまうため、
+// 対象日の範囲と予定の範囲が重なるかで表示対象を決める。
+function occursOnDay(event, day) {
+  const dayStart = startOfDay(day);
+  const dayEnd = addDays(dayStart, 1);
+  return event.start < dayEnd && event.end > dayStart;
+}
+
+function displayTimeForDay(event, day) {
+  if (event.allDay) return '終日';
+  return isSameDay(event.start, day) ? formatTime(event.start) : '継続';
+}
+
 // 来客・外出は今日ぶんだけに絞っているので、日付表示は不要（時刻のみ）。
 function renderPickup(node, events, kind) {
   clear(node);
@@ -200,7 +214,7 @@ function renderPickup(node, events, kind) {
     const li = el('li');
     const item = el('div', `pickup-item is-${kind}`);
 
-    item.appendChild(el('div', 'pickup-time', ev.allDay ? '終日' : formatTime(ev.start)));
+    item.appendChild(el('div', 'pickup-time', displayTimeForDay(ev, new Date())));
     item.appendChild(el('div', 'pickup-title', ev.title));
     if (ev.location) {
       item.appendChild(el('div', 'pickup-place', ev.location));
@@ -234,7 +248,11 @@ function renderToday(events) {
     li.appendChild(
       ev.allDay
         ? el('div', 'today-time is-allday', '終日')
-        : el('div', 'today-time', `${formatTime(ev.start)}–${formatTime(ev.end)}`)
+        : el(
+            'div',
+            'today-time',
+            isSameDay(ev.start, now) ? `${formatTime(ev.start)}–${formatTime(ev.end)}` : '継続中'
+          )
     );
 
     const main = el('div', 'today-main');
@@ -253,7 +271,7 @@ function renderWeek(events, from) {
   // 今日は中央に大きく出しているので、この欄は翌日から weekDays 日ぶんを並べる。
   for (let i = 1; i <= CONFIG.weekDays; i += 1) {
     const day = addDays(from, i);
-    const dayEvents = events.filter((ev) => isSameDay(ev.start, day));
+    const dayEvents = events.filter((ev) => occursOnDay(ev, day));
 
     const row = el('div', 'week-day');
     const dow = day.getDay();
@@ -273,7 +291,7 @@ function renderWeek(events, from) {
           'span',
           `week-event${ev.isVisitor ? ' is-visitor' : ''}${ev.isTransit ? ' is-transit' : ''}${ev.isTaskEvent ? ' is-task' : ''}`
         );
-        if (!ev.allDay) chip.appendChild(el('span', 't', formatTime(ev.start)));
+        chip.appendChild(el('span', 't', displayTimeForDay(ev, day)));
         chip.appendChild(document.createTextNode(ev.title));
         box.appendChild(chip);
       }
@@ -288,11 +306,12 @@ function renderAll(rawEvents) {
   const today = new Date();
   const from = startOfDay(today);
 
-  renderToday(events.filter((ev) => isSameDay(ev.start, today)));
+  const todayEvents = events.filter((ev) => occursOnDay(ev, today));
+  renderToday(todayEvents);
   renderWeek(events, from);
   renderPickup(
     document.getElementById('visitor-list'),
-    events.filter((ev) => ev.isVisitor && isSameDay(ev.start, today)),
+    todayEvents.filter((ev) => ev.isVisitor),
     'visitor'
   );
 }

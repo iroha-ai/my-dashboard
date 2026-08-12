@@ -193,9 +193,8 @@ function dispatchHeartbeat(state) {
     return;
   }
 
-  // 【デバッグ用】トークンそのものは出さず、どのトークンが使われているかだけ分かる形で出す。
-  // repoは前後の見えない空白・改行がないか [] で囲って確認できるようにする。
-  Logger.log(`DEBUG repo=[${repo}] token_len=${token.length} token_head=${token.slice(0, 8)} token_tail=${token.slice(-4)}`);
+  // トークンの一部も実行ログに残さない。repoは前後の見えない空白・改行を確認できるようにする。
+  Logger.log(`DEBUG repo=[${repo}] token_configured=${Boolean(token)}`);
 
   const url = `https://api.github.com/repos/${repo}/dispatches`;
   const payload = {
