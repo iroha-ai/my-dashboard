@@ -16,8 +16,27 @@
 //
 //   銀座線: https://www.tokyometro.jp/library/common/operation/status.json
 //     東京メトロの公式トップページが読み込んでいるJSONP
-//     （operate_status_cb_func(...)）。jp.lines[].status_icon が
-//     "heijou" なら平常、それ以外は何かしら異常。
+//     （operate_status_cb_func(...)）。jp.lines[] を返す。
+//
+// 【2026-08-12 変更】異常判定を、中央線・青梅線（gas/train-status-watcher.gs）と
+// 同じ「キーワード一致」方式に揃えた。以前は jp.lines[].status_icon が "heijou" か
+// どうかだけを見る二値判定だったが、これをやめ、status_info（短い状態ラベル）と
+// contents（詳しい説明文）を対象に ALERT_KEYWORDS / NORMAL_KEYWORDS のキーワード
+// 一致で判定する（NORMAL を優先してチェックする点も含め、GAS側と同じロジック）。
+// 実データで確認したところ、平常時の status_info は必ず「平常運転」（NORMAL_KEYWORDS
+// と完全一致）。異常時は status_info が「ダイヤ乱れ」等の短い表記で、これは
+// ALERT_KEYWORDS の「ダイヤが乱れ」とは（「が」の有無で）文字列一致しないため、
+// 判定対象に contents も含めている（contents 側には「ダイヤが乱れています」等の
+// 形で含まれることを確認済み）。どちらのキーワードにも一致しない場合は判定不能
+// （ok:false）とし、「取れない＝平常運転」のように決めつけない（既存の設計方針を踏襲）。
+const ALERT_KEYWORDS = ['運転見合わせ', '運休', '遅延', '一部運休', 'ダイヤが乱れ', '運転を見合わせ'];
+const NORMAL_KEYWORDS = ['運転再開', '平常運転', '運転を再開'];
+
+function detectStatus(text) {
+  if (NORMAL_KEYWORDS.some((k) => text.includes(k))) return 'normal';
+  if (ALERT_KEYWORDS.some((k) => text.includes(k))) return 'alert';
+  return null;
+}
 
 const TIMEOUT_MS = 15_000;
 const UA =
@@ -60,13 +79,28 @@ async function main() {
 
   try {
     const metro = await fetchMetroGinza();
-    items.push({
-      id: 'ginza',
-      label: '銀座線',
-      ok: true,
-      isNormal: metro.status_icon === 'heijou',
-      status: metro.status_info,
-    });
+    const text = `${metro.status_info || ''}\n${metro.contents || ''}`;
+    const status = detectStatus(text);
+
+    if (status) {
+      items.push({
+        id: 'ginza',
+        label: '銀座線',
+        ok: true,
+        isNormal: status === 'normal',
+        status: metro.status_info,
+      });
+    } else {
+      // キーワードに一致しない未知の文言。中央線・青梅線側（GAS）が
+      // 判定できないメールを黙ってスキップする（＝直前の状態を保つ）のと
+      // 揃え、ここでは「不明」として色を変えない（＝平常と決めつけない）。
+      items.push({
+        id: 'ginza',
+        label: '銀座線',
+        ok: false,
+        reason: `判定不能（キーワード不一致）: ${metro.status_info}`,
+      });
+    }
   } catch (err) {
     items.push({ id: 'ginza', label: '銀座線', ok: false, reason: `取得失敗: ${err.message}` });
   }
