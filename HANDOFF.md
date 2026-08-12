@@ -1,16 +1,16 @@
 # my-dashboard 開発引き継ぎ（Claude Code 向け）
 
 作成日: 2026-08-07
-最終更新: 2026-08-08（「これからの一週間」右隣りを定時ニュースダイジェストのリンク一覧〈日時+件名+件数、最大10件〉に置き換え・実機確認済み。週間天気アイコン+テキスト化。運行情報のジョルダン検知動作確認・鮮度閾値修正）
+最終更新: 2026-08-13（運行情報：アラートが解除されず赤いまま固まる不具合を修正。`gas/train-status-watcher.gs`にconfirmedAt+3時間失効ロジックを追加。本番リポジトリのmainへ反映済み、GAS実プロジェクトへの貼り直しはHide側の作業として残存）
 
 ## これは何か
 
 Hide 個人用の常時表示ダッシュボード。会社モニターに GitHub Pages で公開し、予定・タスク・天気・運行情報・相場・時計を暗い背景の1画面に集約する。
 
 **要件の正本:** vault（PersonalVault）内 `生成物/personal-dashboard/要件定義書.md`
-**このリポジトリが本番実装。** vault 内 `生成物/my-dashboard/` は旧作業コピー（このリポジトリの初回コミットの元ネタ）で、以後の更新はここには反映されない。
+**本番実装は別リポジトリ `iroha-ai/my-dashboard`。** vault内のこのディレクトリ（`生成物/my-dashboard/`）は旧作業コピー（本番リポジトリの初回コミットの元ネタ）であり、本番側の以後の更新はここには自動で反映されない。このファイルとREADME.mdは2026-08-08に本番の内容へ手動で同期したもの。
 
-## リポジトリ・デプロイ状態
+## リポジトリ・デプロイ状態（本番・2026-08-08 確認）
 
 | 項目 | 値 |
 |------|-----|
@@ -19,9 +19,9 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 | 本番 URL | `https://iroha-ai.github.io/my-dashboard/` |
 | GitHub Pages | 有効化済み（`main` ルート） |
 | Google Cloud プロジェクト | `my-dashboard`（ID: `the-name-504804-c2`） |
-| 有効化済みAPI | Google Calendar API、Google Tasks API。Gmail APIは2026-08-08にコードから使い始めたが、**Cloud Console側で明示的に有効化したか未確認**（下記「これからの一週間の右隣り」節参照） |
+| 有効化済みAPI | Google Calendar API、Google Tasks API、Gmail API（2026-08-08追加・有効化確認済み） |
 | OAuth クライアント | 発行済み（`js/config.js` の `googleClientId`）。テストユーザーに Hide のアカウント登録済み |
-| OAuthスコープ | `calendar.readonly` + `tasks.readonly` + `gmail.readonly`（2026-08-08追加・要再同意・動作未確認） |
+| OAuthスコープ | `calendar.readonly` + `tasks.readonly` + `gmail.readonly`（2026-08-08追加・再同意・実機確認済み） |
 | GitHub Actions | `運行情報の更新`（銀座線・5分ごと cron）＋`運行情報の更新（ジョルダンのメール検知：中央線・青梅線）`（GAS からの repository_dispatch）。どちらも `data` ブランチへ orphan 上書き。相場用cronは撤去済み |
 | GitHub Secrets | **無し。**（`TWELVEDATA_API_KEY` は不要になり削除済み。運行情報の取得元もキー不要）。ただし中央線・青梅線用の GitHub PAT は Google Apps Script 側の Script Properties に別途必要（下記「運行情報：中央線・青梅線をジョルダンのメール検知に切替」参照） |
 
@@ -201,6 +201,35 @@ GitHub側が正しく反応することを確認したのち、GAS実機から�
 `js/train.js`から該当ソースの取得を外せば、中央線・青梅線は元の静的リンク表示に戻る。
 GAS側のトリガーも `installTrigger` と対になる形で `ScriptApp.getProjectTriggers()`
 から手動削除すること。
+
+## 運行情報：アラートが解除されず赤いまま固まる不具合を修正（2026-08-13）
+
+**きっかけ:** Hideから「鉄道運行、アラート出ていないのに赤いまま」と指摘。
+
+**原因:** 上記「この切替でも解決しない限界」に書いていた懸念がそのまま現実になった。
+2026-08-12の大雨対応で中央線・青梅線とも「運転見合わせ」「遅延」等のメールは複数
+届いていたが、「運転再開」「平常運転」を告げるメールが1通も来なかった（Gmail検索・
+JR東日本公式の運行情報で確認済み。実際は復旧していた）。`gas/train-status-watcher.gs`の
+`LAST_STATE`キャッシュは異常状態を保持したまま、ハートビートで`train-mail.json`へ
+送られ続けていた。`updatedAt`は5分おきに更新されるため、`js/train.js`側の
+「90分以上更新が無ければ色を変えない」という鮮度判定が実質機能していなかった
+（ハートビート方式だと中身がどれだけ古くても`updatedAt`だけは常に「今」になる、
+という設計上の盲点）。
+
+**対応:** `gas/train-status-watcher.gs`に、路線ごとの確認済み状態へ`confirmedAt`
+（最後にメールで確認できた時刻）を持たせ、`CONFIRM_EXPIRY_MS`（3時間。2026-08-12の
+実況メール間隔の実測最大値〈3時間強〉に余裕を持たせた値）を過ぎても新しい確認が
+取れなければ、その路線を自動的に「未確認」へ戻す（＝リンクの色を変えない）処理を追加。
+「メールが来ない＝平常運転」と決めつけず「メールが来ない＝わからない」に倒す、という
+このファイル本来の方針をそのまま踏襲している。あわせて、キャッシュを即座に手動で
+消去できる`resetTrainState()`関数も追加した。
+
+**適用手順（本番）:** GitHub本番リポジトリ（`iroha-ai/my-dashboard`、`main`）の
+`gas/train-status-watcher.gs`は更新済み。ただしGASはリポジトリから自動デプロイ
+されないため、**`script.google.com`の実プロジェクト側にこの内容を手動で貼り直す
+作業がHide側に残っている。** 貼り直して保存すれば、次のトリガー実行（最大5分後）で
+`confirmedAt`を持たない旧形式のキャッシュは自動的に失効し、現在赤くなっている
+表示も解消されるはず（`resetTrainState()`を別途手動実行する必要はない）。
 
 ## Googleサインインが「毎回クリックが必要」な件（2026-08-07 判明）
 
@@ -465,6 +494,12 @@ PC設定に依存せず安全（Hideから「確実にJSTにしたい」とい�
   Script Properties（Googleアカウント内）に保存される**ため、リポジトリのSecretsではない
   形でクレデンシャルが1つ増えている点に注意
 
+## 関連
+
+- 本番リポジトリ: <https://github.com/iroha-ai/my-dashboard>
+- 本番URL: <https://iroha-ai.github.io/my-dashboard/>
+
 ---
 
-*このファイルは Claude Code が更新している。作業内容を変えたら、このファイルも合わせて更新すること。*
+*このファイルはvault側で管理している。本番リポジトリにも同名の `HANDOFF.md` があり、
+そちらが本番の実装状況について最も正確（このファイルは2026-08-08時点でそこから手動同期したもの）。*

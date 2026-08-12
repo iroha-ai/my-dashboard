@@ -29,6 +29,21 @@
  * 検知できない（updatedAtは更新され続けるが中身が古いまま）。GASの実行ログを
  * 時々確認するか、実際に運行障害があったときに正しく反応するか定点観測すること。
  *
+ * 【2026-08-13 追加: 確認済み状態の失効】
+ * 上記の弱点が実際に起きた。2026-08-12の大雨対応では「運転見合わせ」「遅延」等の
+ * メールは複数届いたが、「運転再開」「平常運転」を告げるメールが1通も来なかった。
+ * 実際には復旧していたのに、キャッシュはisNormal:falseを保持し続け、
+ * ハートビートでtrain-mail.jsonへ送られ続けた。その結果js/train.js側の
+ * 「90分以上更新が無ければ色を変えない」という鮮度判定が意味を成さなくなった
+ * ——ハートビート方式ではupdatedAtが常に「今」に更新されるので、中身が
+ * どれだけ古くても"新しい"と誤判定してしまう。
+ * これに対処するため、各路線の状態に confirmedAt（最後にメールで確認できた
+ * 時刻）を持たせ、CONFIRM_EXPIRY_MS を過ぎても新しい確認が取れなければ、
+ * その路線を「未確認」に戻す（＝リンクの色を変えない）ようにした。
+ * 「メールが来ない＝平常運転」と決めつけるのではなく「メールが来ない＝
+ * わからない」に倒すという、このファイル本来の設計方針（不明な間は色を
+ * 変えない）をそのまま踏襲している。
+ *
  * 全体の流れ:
  *   1. 5分おきのトリガーで checkJorudanMail() が走る
  *   2. Gmail から未読の運行情報メールを検索する
@@ -58,10 +73,16 @@ const ALERT_KEYWORDS = ['運転見合わせ', '運休', '遅延', '一部運休'
 // 「平常に戻った」と判定するキーワード（いずれかを含めば normal。ALERT より優先して判定する）。
 const NORMAL_KEYWORDS = ['運転再開', '平常運転', '運転を再開'];
 
+// 確認済み状態の有効期限。この時間を過ぎても新しいメール（異常でも平常でも）が
+// 来なければ、キャッシュを「未確認」に戻す（2026-08-13 追加、上記コメント参照）。
+// 2026-08-12の実際の障害では実況メールの間隔が最大3時間強空いたことがあったため、
+// それより余裕を持たせつつ、平常復帰後に無期限で赤が残らない値として3時間にした。
+const CONFIRM_EXPIRY_MS = 3 * 60 * 60 * 1000;
+
 // ---------- メイン ----------
 
 function checkJorudanMail() {
-  const state = loadState();
+  const state = expireStaleState(loadState());
   const threads = GmailApp.search(SEARCH_QUERY, 0, 20);
 
   for (const thread of threads) {
@@ -83,6 +104,7 @@ function checkJorudanMail() {
             isNormal: status === 'normal',
             status: status === 'normal' ? '平常運転' : '運行に影響あり（詳細はメール参照）',
             source: subject,
+            confirmedAt: new Date().toISOString(),
           };
         }
       }
@@ -93,6 +115,26 @@ function checkJorudanMail() {
 
   saveState(state);
   dispatchHeartbeat(state);
+}
+
+// 確認済み状態のうち、CONFIRM_EXPIRY_MS を過ぎても更新が無いものを
+// 「未確認」に戻す（＝キャッシュから外す）。新着メールの処理前に毎回呼ぶ。
+// confirmedAt を持たない古い形式のキャッシュ（この変更を入れる前の状態）も
+// ここで一緒に失効させ、既に赤いまま固まっている状態を次回実行で自動的に
+// 解消できるようにしている。
+function expireStaleState(state) {
+  const now = Date.now();
+  const next = {};
+  for (const id of Object.keys(state)) {
+    const cached = state[id];
+    const confirmedAt = cached.confirmedAt ? new Date(cached.confirmedAt).getTime() : 0;
+    if (confirmedAt && now - confirmedAt <= CONFIRM_EXPIRY_MS) {
+      next[id] = cached;
+    } else {
+      Logger.log(`state expired: ${id}（最終確認 ${cached.confirmedAt || '不明（旧形式）'}）`);
+    }
+  }
+  return next;
 }
 
 function detectStatus(text) {
@@ -129,9 +171,15 @@ function dispatchHeartbeat(state) {
   const items = Object.keys(ROUTE_PATTERNS).map((id) => {
     const cached = state[id];
     if (!cached) {
-      // まだ一度もメールで確認できていない路線は「不明」のまま送る。
+      // まだ一度もメールで確認できていない、または確認済みの状態が
+      // CONFIRM_EXPIRY_MS を過ぎて失効した路線は「不明」のまま送る。
       // フロント側は ok:false を「取れない」として扱い、色を変えない。
-      return { id, label: ROUTE_PATTERNS[id].label, ok: false, reason: '未確認（ジョルダンからのメール未着）' };
+      return {
+        id,
+        label: ROUTE_PATTERNS[id].label,
+        ok: false,
+        reason: '未確認（ジョルダンからのメール未着、または情報が古いため失効）',
+      };
     }
     return { id, label: ROUTE_PATTERNS[id].label, ...cached };
   });
@@ -194,4 +242,15 @@ function installTrigger() {
   }
   ScriptApp.newTrigger('checkJorudanMail').timeBased().everyMinutes(5).create();
   Logger.log('トリガーを設定しました（5分おき）');
+}
+
+/**
+ * キャッシュ（LAST_STATE）を手動で全消去する。CONFIRM_EXPIRY_MS による自動失効を
+ * 待たずに、両路線をすぐ「未確認」に戻したいとき用。GASエディタでこの関数を
+ * 選んで実行ボタンを押すこと。実行後、次のトリガー（最大5分後）で
+ * train-mail.json に反映される。
+ */
+function resetTrainState() {
+  PropertiesService.getScriptProperties().deleteProperty('LAST_STATE');
+  Logger.log('LAST_STATE を削除しました。次回トリガーで両路線とも「未確認」に戻ります。');
 }
