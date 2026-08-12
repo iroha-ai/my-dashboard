@@ -10,6 +10,7 @@
   --text-faint: #5d6874;
   --accent: #4aa8ff;
   --visitor: #ffb454;
+  --transit: #b18aff;
   --warn: #ff6b6b;
   --caution: #ffd23f;
   --ok: #3fb950;
@@ -613,6 +614,7 @@ body {
 }
 
 .today-item.is-visitor .today-title { color: var(--visitor); }
+.today-item.is-transit .today-title { color: var(--transit); }
 .today-item.is-task .today-title { color: var(--ok); }
 .today-item.is-past { opacity: 0.4; }
 
@@ -730,6 +732,7 @@ body {
 }
 
 .week-event.is-visitor { color: var(--visitor); }
+.week-event.is-transit { color: var(--transit); }
 .week-event.is-task { color: var(--ok); }
 
 .week-empty {
