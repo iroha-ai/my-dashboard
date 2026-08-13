@@ -6,10 +6,11 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
-# 同じワークフローが重なったときは、新しい方だけを残す。
+# data ブランチを書き換える全ワークフローと直列化する。
+# 別々のワークフローが同時に force push すると、片方の更新を消してしまうため。
 concurrency:
-  group: train-data
-  cancel-in-progress: true
+  group: data-branch-writer
+  cancel-in-progress: false
 
 permissions:
   contents: write

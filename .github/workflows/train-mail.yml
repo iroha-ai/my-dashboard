@@ -14,8 +14,9 @@ on:
         default: '[{"id":"chuo","label":"中央線","ok":false,"reason":"手動テスト"},{"id":"ome","label":"青梅線","ok":false,"reason":"手動テスト"}]'
 
 concurrency:
-  group: train-mail-data
-  cancel-in-progress: true
+  # train.yml と同じ data ブランチへ force push するため、同じグループで直列化する。
+  group: data-branch-writer
+  cancel-in-progress: false
 
 permissions:
   contents: write
