@@ -1,4 +1,4 @@
-import { clear, el, showMessage } from './util.js';
+import { clear, el, showMessage } from './util.js?v=20260813-weather-fallback';
 
 // 定時ニュースダイジェスト（Gmailの自分宛メール）へのリンク一覧。
 // 「これからの一週間」の右隣り（旧・Googleカレンダー埋め込み）に表示する

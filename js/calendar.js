@@ -1,4 +1,9 @@
-import { CONFIG } from './config.js';
+// import のクエリ文字列（?v=）は、全ファイルで同じ値に揃えること。
+// ここだけ ?v= を付け忘れると、ブラウザが古い config.js をキャッシュから返し、
+// 新しく足したキー（transitKeywords 等）が undefined になって
+// `Cannot read properties of undefined (reading 'some')` で落ちる（2026-08-13に実際に発生）。
+// 加えて、同じファイルをクエリ有り・無しで読むと別モジュールとして二重に評価される。
+import { CONFIG } from './config.js?v=20260813-weather-fallback';
 import {
   addDays,
   clear,
@@ -8,9 +13,13 @@ import {
   showMessage,
   startOfDay,
   weekdayLabel,
-} from './util.js';
-import { renderTasks, showTasksMessage, updateTasks } from './tasks.js?v=20260810-done-tasks2';
-import { updateNewsDigest } from './news.js?v=20260809-news-status';
+} from './util.js?v=20260813-weather-fallback';
+import {
+  renderTasks,
+  showTasksMessage,
+  updateTasks,
+} from './tasks.js?v=20260813-weather-fallback';
+import { updateNewsDigest } from './news.js?v=20260813-weather-fallback';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 // タスク欄（Google Tasks）、定時ニュース欄（Gmail）も同じ画面に出すため、
@@ -152,6 +161,13 @@ async function fetchEvents(token, timeMin, timeMax) {
   return all;
 }
 
+// CONFIG のキーワード配列は、設定の書き換えやキャッシュずれで欠けることがある。
+// 欠けたときに落ちて予定欄ごと死ぬより、色分けだけ諦めて予定を出すほうがまし。
+function matchesAny(text, keywords) {
+  if (!Array.isArray(keywords)) return false;
+  return keywords.some((kw) => text.includes(kw));
+}
+
 function normalize(event) {
   const allDay = Boolean(event.start?.date);
   const start = new Date(event.start?.dateTime || `${event.start?.date}T00:00:00`);
@@ -163,17 +179,17 @@ function normalize(event) {
 
   // タイトルに「移動」を含む予定は紫扱い。来客・外出（駅すぱあと等の自動生成含む）とは
   // 別枠にするため、来客・外出の判定より先に見て、該当したらそちらを優先する。
-  const isTransit = CONFIG.transitKeywords.some((kw) => title.includes(kw));
+  const isTransit = matchesAny(title, CONFIG.transitKeywords);
 
   // タイトルのキーワードに加え、説明欄に駅すぱあと（経路検索）由来の
   // 自動生成マーカーがある予定（＝移動・外出の予定）も来客・外出として拾う。
   const isVisitor =
     !isTransit &&
-    (CONFIG.visitorKeywords.some((kw) => title.includes(kw)) ||
-      CONFIG.visitorDescriptionMarkers.some((kw) => description.includes(kw)));
+    (matchesAny(title, CONFIG.visitorKeywords) ||
+      matchesAny(description, CONFIG.visitorDescriptionMarkers));
 
   // Google Tasksの疑似イベント（説明欄にGoogleの定型文が入る）かどうか。
-  const isTaskEvent = CONFIG.taskDescriptionMarkers.some((kw) => description.includes(kw));
+  const isTaskEvent = matchesAny(description, CONFIG.taskDescriptionMarkers);
 
   return {
     title,
@@ -337,11 +353,19 @@ function showCalendarMessage(message, isError) {
 export async function updateCalendar(onStatus) {
   // 動作確認用。?demo=1 を付けると、認証せずサンプルの予定でレイアウトを確認できる。
   if (new URLSearchParams(location.search).get('demo') === '1') {
-    const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import('./demo-events.js');
-    renderAll(DEMO_EVENTS());
-    renderTasks(DEMO_TASKS());
-    renderDemoNews(DEMO_NEWS());
-    onStatus?.('calendar', 'デモ表示中', false);
+    try {
+      const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import(
+        './demo-events.js?v=20260813-weather-fallback'
+      );
+      renderAll(DEMO_EVENTS());
+      renderTasks(DEMO_TASKS());
+      renderDemoNews(DEMO_NEWS());
+      onStatus?.('calendar', 'デモ表示中', false);
+    } catch (err) {
+      console.error('デモ表示に失敗', err);
+      showCalendarMessage('デモ表示に失敗しました', true);
+      onStatus?.('calendar', 'デモ表示に失敗', true);
+    }
     return;
   }
 

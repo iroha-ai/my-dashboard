@@ -1,10 +1,12 @@
-import { CONFIG } from './config.js?v=20260812-transit-purple';
-import { startClock } from './clock.js';
-import { updateCalendar } from './calendar.js?v=20260812-transit-purple';
-import { updateTrain } from './train.js';
-import { updateWeather } from './weather.js?v=20260812-alert-severity-color';
-import { updateDeliveryStatus } from './news.js?v=20260809-news-status';
-import { clear, el, runPeriodically } from './util.js';
+// ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
+// （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
+import { CONFIG } from './config.js?v=20260813-weather-fallback';
+import { startClock } from './clock.js?v=20260813-weather-fallback';
+import { updateCalendar } from './calendar.js?v=20260813-weather-fallback';
+import { updateTrain } from './train.js?v=20260813-weather-fallback';
+import { updateWeather } from './weather.js?v=20260813-weather-fallback';
+import { updateDeliveryStatus } from './news.js?v=20260813-weather-fallback';
+import { clear, el, runPeriodically } from './util.js?v=20260813-weather-fallback';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。
@@ -55,6 +57,16 @@ function setStatus(key, message, isError, action = null) {
   renderStatus();
 }
 
+const FAILURE_LABELS = {
+  calendar: '予定等の更新に失敗',
+  weather: '天気の更新に失敗',
+  train: '運行情報の更新に失敗',
+};
+
+// runPeriodically は例外を console.error するだけなので、想定外の例外が出ると
+// 画面は「読み込み中」のまま黙って止まる。各 update 側でも失敗表示を出しているが、
+// そこをすり抜けた分をヘッダーのステータス欄に必ず出す最後の砦としてここで捕まえる
+// （2026-08-13追加。取れていないことに気づけないのが一番まずいため）。
 async function updateAndStamp(key, update) {
   let completed = false;
   const trackStatus = (statusKey, message, isError, action = null) => {
@@ -62,7 +74,13 @@ async function updateAndStamp(key, update) {
     if (statusKey === key) completed = !isError;
   };
 
-  await update(trackStatus);
+  try {
+    await update(trackStatus);
+  } catch (err) {
+    console.error(`${key} の更新に失敗`, err);
+    setStatus(key, FAILURE_LABELS[key] || `${key} の更新に失敗`, true);
+    return;
+  }
   if (completed) markUpdated(key);
 }
 

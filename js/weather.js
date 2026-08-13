@@ -1,5 +1,12 @@
-import { CONFIG } from './config.js?v=20260812-transit-purple';
-import { clear, el, fetchJson, pad2, showMessage, weekdayLabel } from './util.js';
+import { CONFIG } from './config.js?v=20260813-weather-fallback';
+import {
+  clear,
+  el,
+  fetchJson,
+  pad2,
+  showMessage,
+  weekdayLabel,
+} from './util.js?v=20260813-weather-fallback';
 
 // 気象庁の警報・注意報コード。表にない番号が来ても落とさず、番号のまま出す。
 const WARNING_NAMES = {
@@ -58,8 +65,10 @@ function levelForCode(code) {
 
 // 気温表示の色分けに使う、複数コード中でもっとも重い重大度。
 // 注意報・警報が両方あれば警報（赤）を優先する。
+// 気象庁の防災情報JSONは公開仕様のAPIではない（READMEの注記参照）ので、
+// 配列で来る前提を置かない。配列でなければ「警報・注意報なし」として扱う。
 function warningLevel(codes) {
-  if (!codes?.length) return null;
+  if (!Array.isArray(codes) || !codes.length) return null;
   if (codes.some((code) => levelForCode(code) === 'warning')) return 'warning';
   if (codes.some((code) => levelForCode(code) === 'advisory')) return 'advisory';
   return null;
@@ -151,7 +160,7 @@ async function fetchWeeklyOpenMeteo(city) {
 
 function renderWeeklyAlerts(node, warningCodes) {
   clear(node);
-  if (!warningCodes?.length) return;
+  if (!Array.isArray(warningCodes) || !warningCodes.length) return;
 
   for (const code of warningCodes) {
     node.appendChild(el('span', alertChipClass(code), warningName(code)));
@@ -231,23 +240,32 @@ async function updateWeeklyCity(city, onStatus) {
     console.error(`気象庁週間予報の取得に失敗（${city.name}）`, err);
   }
 
-  days = days.map((day) => ({
-    ...day,
-    label: wmoLabel(day.weatherCode),
-    icon: wmoIcon(day.weatherCode),
-  }));
+  // ここから先は描画。想定外のデータ形でも「読み込み中」のまま黙って止まらないよう、
+  // まとめて捕まえて失敗表示に切り替える。
+  try {
+    days = days.map((day) => ({
+      ...day,
+      label: wmoLabel(day.weatherCode),
+      icon: wmoIcon(day.weatherCode),
+    }));
 
-  const warnings = await fetchWarnings([city]).catch(() => new Map());
-  if (alertsNode) {
-    renderWeeklyAlerts(alertsNode, warnings.get(`${city.prefecture}:${city.warningArea}`));
-  }
+    const warnings = await fetchWarnings([city]).catch(() => new Map());
+    if (alertsNode) {
+      renderWeeklyAlerts(alertsNode, warnings.get(`${city.prefecture}:${city.warningArea}`));
+    }
 
-  const todayKey = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}-${pad2(
-    new Date().getDate()
-  )}`;
-  clear(list);
-  for (const day of days) {
-    list.appendChild(renderWeeklyDay(day, day.date === todayKey));
+    const todayKey = `${new Date().getFullYear()}-${pad2(new Date().getMonth() + 1)}-${pad2(
+      new Date().getDate()
+    )}`;
+    clear(list);
+    for (const day of days) {
+      list.appendChild(renderWeeklyDay(day, day.date === todayKey));
+    }
+  } catch (err) {
+    console.error(`週間天気の表示に失敗（${city.name}）`, err);
+    showMessage(list, '週間天気を表示できませんでした', true);
+    onStatus?.(statusKey, `${city.name}の週間天気の表示に失敗`, true);
+    return;
   }
 
   onStatus?.(statusKey, null, false);
@@ -306,10 +324,15 @@ async function fetchWarnings(cities) {
     prefectures.map(async (pref) => {
       try {
         const data = await fetchJson(`${JMA_WARNING}${pref}.json`);
-        for (const areaType of data?.areaTypes || []) {
-          for (const area of areaType.areas || []) {
-            const active = (area.warnings || [])
-              .filter((w) => w.status !== '解除' && w.code)
+        // 想定と違う形（配列でない・キーが無い）で返ってきても、
+        // ここで落ちると呼び出し元まで巻き添えになるので、都度 Array.isArray で確かめる。
+        const areaTypes = Array.isArray(data?.areaTypes) ? data.areaTypes : [];
+        for (const areaType of areaTypes) {
+          const areas = Array.isArray(areaType?.areas) ? areaType.areas : [];
+          for (const area of areas) {
+            const warnings = Array.isArray(area?.warnings) ? area.warnings : [];
+            const active = warnings
+              .filter((w) => w?.status !== '解除' && w?.code)
               .map((w) => w.code);
             if (active.length) {
               results.set(`${pref}:${area.code}`, active);
@@ -374,7 +397,7 @@ function renderCard(city, temp, forecastText, warningCodes) {
   card.appendChild(el('div', 'weather-desc', forecastText || '—'));
 
   const alerts = el('div', 'weather-alerts');
-  if (warningCodes && warningCodes.length) {
+  if (Array.isArray(warningCodes) && warningCodes.length) {
     for (const code of warningCodes) {
       alerts.appendChild(el('span', alertChipClass(code), warningName(code)));
     }
@@ -387,44 +410,62 @@ function renderCard(city, temp, forecastText, warningCodes) {
 }
 
 export async function updateWeather(onStatus) {
-  await Promise.all(
-    CONFIG.weeklyWeatherCities.map((city) => updateWeeklyCity(city, onStatus))
-  );
-
   const row = document.getElementById('weather-row');
-  const cities = CONFIG.cities;
+  if (!row) return; // index.html 側に対応する要素が無ければ何もしない
 
-  let temps;
-  try {
-    temps = await fetchTemperatures(cities);
-  } catch (err) {
-    console.error('気温の取得に失敗', err);
-    showMessage(row, '天気を取得できませんでした', true);
-    onStatus?.('weather', '天気の取得に失敗', true);
-    return;
+  // 週間天気（サイドバー）の失敗が、下の気温カードまで巻き添えにしないよう allSettled で待つ。
+  // Promise.all だと1地点が投げただけで updateWeather ごと抜けてしまい、
+  // #weather-row が「天気を読み込み中」のまま残る（2026-08-13に修正）。
+  const weekly = await Promise.allSettled(
+    (CONFIG.weeklyWeatherCities || []).map((city) => updateWeeklyCity(city, onStatus))
+  );
+  for (const result of weekly) {
+    if (result.status === 'rejected') {
+      console.error('週間天気の更新に失敗', result.reason);
+    }
   }
 
-  const [forecasts, warnings] = await Promise.all([
-    fetchForecastTexts(cities),
-    fetchWarnings(cities),
-  ]);
+  try {
+    const cities = CONFIG.cities || [];
 
-  clear(row);
-  cities.forEach((city, i) => {
-    row.appendChild(
-      renderCard(
-        city,
-        temps[i],
-        forecasts.get(`${city.prefecture}:${city.forecastArea}`),
-        warnings.get(`${city.prefecture}:${city.warningArea}`)
-      )
-    );
-  });
+    let temps;
+    try {
+      temps = await fetchTemperatures(cities);
+    } catch (err) {
+      console.error('気温の取得に失敗', err);
+      showMessage(row, '天気を取得できませんでした', true);
+      onStatus?.('weather', '天気の取得に失敗', true);
+      return;
+    }
 
-  // 予報文や注意報だけ落ちた場合も、黙って空にせず知らせる。
-  if (!forecasts.size) {
-    onStatus?.('weather', '天気予報の文面を取得できず', true);
-  } else {
-    onStatus?.('weather', null, false);
+    const [forecasts, warnings] = await Promise.all([
+      fetchForecastTexts(cities),
+      fetchWarnings(cities),
+    ]);
+
+    clear(row);
+    cities.forEach((city, i) => {
+      row.appendChild(
+        renderCard(
+          city,
+          temps[i],
+          forecasts.get(`${city.prefecture}:${city.forecastArea}`),
+          warnings.get(`${city.prefecture}:${city.warningArea}`)
+        )
+      );
+    });
+
+    // 予報文や注意報だけ落ちた場合も、黙って空にせず知らせる。
+    if (!forecasts.size) {
+      onStatus?.('weather', '天気予報の文面を取得できず', true);
+    } else {
+      onStatus?.('weather', null, false);
+    }
+  } catch (err) {
+    // 想定外の例外。ここで拾わないと runPeriodically が console.error するだけで、
+    // 画面は「天気を読み込み中」のまま黙って止まる。
+    console.error('天気の表示に失敗', err);
+    showMessage(row, '天気を表示できませんでした', true);
+    onStatus?.('weather', '天気の表示に失敗', true);
   }
 }
