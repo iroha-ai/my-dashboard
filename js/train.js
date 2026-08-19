@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=20260820-yahoo-sports';
+import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
 import { fetchJson } from './util.js?v=20260813-weather-fallback';
 
 // 運行情報。詳しい文言は出さず、該当路線のリンクの色を変えるだけにしている

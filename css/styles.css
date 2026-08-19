@@ -11,6 +11,7 @@
   --accent: #4aa8ff;
   --visitor: #ffb454;
   --transit: #b18aff;
+  --highlight: #b18aff;
   --warn: #ff6b6b;
   --caution: #ffd23f;
   --ok: #3fb950;
@@ -698,6 +699,13 @@ body {
 
 .yahoo-news-link:hover {
   text-decoration: underline;
+}
+
+/* F1・横浜Fマリノス関連の見出しを紫字に（2026-08-20、Hideの指定。
+   js/yahoo-sports-news.js の isHighlighted 参照）。 */
+.yahoo-news-link.is-highlight {
+  color: var(--highlight);
+  font-weight: 600;
 }
 
 /* 定時ニュースダイジェスト（Gmail）へのリンク一覧。メール1通＝1行。

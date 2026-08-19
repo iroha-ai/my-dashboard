@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=20260820-yahoo-sports';
+import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
 import { clear, el, fetchJson, showMessage } from './util.js?v=20260813-weather-fallback';
 
 // Yahoo!ニュースの見出し一覧（スポーツ総合／モータースポーツ）。
@@ -10,6 +10,12 @@ import { clear, el, fetchJson, showMessage } from './util.js?v=20260813-weather-
 // data ブランチへ書いたJSONを読むだけ（train.jsonと同じ仕組み）。
 
 const MAX_ITEMS = 8;
+
+// 見出しにF1・横浜Fマリノス関連の語が含まれていたら紫字にする
+// （2026-08-20、Hideの指定。CONFIG.yahooNewsHighlightKeywords参照）。
+function isHighlighted(title) {
+  return CONFIG.yahooNewsHighlightKeywords.some((kw) => title.includes(kw));
+}
 
 function renderList(listId, items) {
   const list = document.getElementById(listId);
@@ -27,7 +33,9 @@ function renderList(listId, items) {
     a.href = item.link;
     a.target = '_blank';
     a.rel = 'noopener';
-    a.className = 'yahoo-news-link';
+    a.className = isHighlighted(item.title)
+      ? 'yahoo-news-link is-highlight'
+      : 'yahoo-news-link';
     a.textContent = item.title;
     li.appendChild(a);
     list.appendChild(li);

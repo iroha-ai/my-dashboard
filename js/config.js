@@ -31,6 +31,11 @@ export const CONFIG = {
   yahooSportsNewsDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/yahoo-sports-news.json',
 
+  // Yahoo!ニュース見出しのうち、見出し（タイトル）にこの語を含む記事は紫字にする
+  // （2026-08-20、Hideの指定。F1＝角田裕毅、横浜Fマリノス＝応援チームなので、
+  // 「スポーツ」「モータースポーツ」いずれの欄でも見つけやすくする）。
+  yahooNewsHighlightKeywords: ['F1', 'Ｆ１', 'マリノス', '横浜FM', '横浜ＦＭ'],
+
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。
   cities: [

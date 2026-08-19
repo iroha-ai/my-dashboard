@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=20260820-yahoo-sports';
+import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
 import {
   clear,
   el,
