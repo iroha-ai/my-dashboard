@@ -50,7 +50,8 @@ function applySource(data) {
     if (stale || !item.ok) {
       applyState(item.id, null); // 不明な間はリンクの色を変えない
     } else {
-      applyState(item.id, item.isNormal ? 'is-normal' : 'is-trouble');
+      // 平常時はデフォルト色（中央線等と同じ青）。異常時だけ is-trouble を付ける。
+      applyState(item.id, item.isNormal ? null : 'is-trouble');
     }
   }
 

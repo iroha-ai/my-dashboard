@@ -3,7 +3,7 @@
 import { CONFIG } from './config.js?v=20260813-weather-fallback';
 import { startClock } from './clock.js?v=20260813-weather-fallback';
 import { updateCalendar } from './calendar.js?v=20260813-weather-fallback';
-import { updateTrain } from './train.js?v=20260813-weather-fallback';
+import { updateTrain } from './train.js?v=20260819-train-color';
 import { updateWeather } from './weather.js?v=20260813-weather-fallback';
 import { updateDeliveryStatus } from './news.js?v=20260813-weather-fallback';
 import { clear, el, runPeriodically } from './util.js?v=20260813-weather-fallback';
