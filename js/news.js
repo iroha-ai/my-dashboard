@@ -74,15 +74,24 @@ function findBodyPart(payload, mimeType) {
   return null;
 }
 
-// 本文中の「原文を読む」等のボタンリンク（メールテンプレートで共通の背景色）の数を、
-// ニュース件数の目安として数える。メールのHTMLテンプレートに依存した見た目上の
-// カウントなので、テンプレートが変わると数え損なうことがある。その場合は件数を
-// 表示しないだけにして、日時・件名の表示は壊さない（countArticlesがnullを返す）。
+// 本文からニュース件数を推定する。テンプレート変更に備え、複数の取り方を順に試す。
+// どれも当てはまらなければ null（件数は表示しないが、日時・件名・リンクは残す）。
 function countArticles(htmlBody) {
   if (!htmlBody) return null;
+
+  // 0件配信（旧テンプレート / news-digest-html.py）
   if (/今回の新着重要情報はありません/.test(htmlBody)) return 0;
-  const matches = htmlBody.match(/background:#1976d2/g);
-  return matches ? matches.length : null;
+  if (/今回は新着ニュースがなかった/.test(htmlBody)) return 0;
+
+  // 新テンプレート（2026-08-18〜）: ヘッダー「… ・ 新着 N 件」
+  const headerCount = htmlBody.match(/新着\s*(\d+)\s*件/);
+  if (headerCount) return Number(headerCount[1]);
+
+  // 旧テンプレート: 「原文を読む」ボタンの背景色の出現数
+  const legacyButtons = htmlBody.match(/background:#1976d2/gi);
+  if (legacyButtons) return legacyButtons.length;
+
+  return null;
 }
 
 async function fetchDigestMeta(token, id) {

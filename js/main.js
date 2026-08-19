@@ -2,10 +2,10 @@
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
 import { CONFIG } from './config.js?v=20260813-weather-fallback';
 import { startClock } from './clock.js?v=20260813-weather-fallback';
-import { updateCalendar } from './calendar.js?v=20260813-weather-fallback';
+import { updateCalendar } from './calendar.js?v=20260819-news-count';
 import { updateTrain } from './train.js?v=20260819-train-color';
 import { updateWeather } from './weather.js?v=20260813-weather-fallback';
-import { updateDeliveryStatus } from './news.js?v=20260813-weather-fallback';
+import { updateDeliveryStatus } from './news.js?v=20260819-news-count';
 import { clear, el, runPeriodically } from './util.js?v=20260813-weather-fallback';
 
 // 何かが取れていないとき、常時表示だと気づけない。
