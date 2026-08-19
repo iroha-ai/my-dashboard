@@ -37,13 +37,18 @@ jobs:
         run: |
           set -euo pipefail
           # 履歴を1コミットに保つため、親を持たないコミットを作って毎回置き換える。
-          # train-mail.json（中央線・青梅線、train-mail.ymlが書く）は自分のツリーに
+          # train-mail.json（中央線・青梅線、train-mail.ymlが書く）・
+          # yahoo-sports-news.json（yahoo-sports-news.ymlが書く）は自分のツリーに
           # 含まれていないと消えてしまうため、data ブランチの現状から引き継ぐ。
           git fetch origin data:data 2>/dev/null || true
           tree_entries="100644 blob $(git hash-object -w train.json)\ttrain.json"
           if git show data:train-mail.json > /tmp/train-mail.json 2>/dev/null; then
             blob2=$(git hash-object -w /tmp/train-mail.json)
             tree_entries="$tree_entries\n100644 blob $blob2\ttrain-mail.json"
+          fi
+          if git show data:yahoo-sports-news.json > /tmp/yahoo-sports-news.json 2>/dev/null; then
+            blob3=$(git hash-object -w /tmp/yahoo-sports-news.json)
+            tree_entries="$tree_entries\n100644 blob $blob3\tyahoo-sports-news.json"
           fi
           tree=$(printf "$tree_entries\n" | git mktree)
           commit=$(git commit-tree "$tree" -m "train data $(date -u +%Y-%m-%dT%H:%M:%SZ)")

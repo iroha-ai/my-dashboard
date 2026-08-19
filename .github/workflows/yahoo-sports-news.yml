@@ -1,0 +1,54 @@
+name: Yahoo!ニュース見出し（スポーツ・モータースポーツ）の更新
+
+on:
+  schedule:
+    # 20分ごと。速報性より安定取得を優先し、train.yml(5分)より緩め。
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+# data ブランチを書き換える全ワークフロー（train.yml・train-mail.yml）と直列化する。
+# 別々のワークフローが同時に force push すると、片方の更新を消してしまうため。
+concurrency:
+  group: data-branch-writer
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Yahoo!ニュース見出しを取得する
+        run: node scripts/fetch-yahoo-sports-news.mjs > yahoo-sports-news.json
+
+      - name: data ブランチへ上書きする
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          # train.json・train-mail.json（train.yml・train-mail.ymlが書く）を
+          # data ブランチの現状から引き継ぐ。引き継がないと、このワークフローが
+          # force push した瞬間に他方のファイルが消えてしまう。
+          git fetch origin data:data 2>/dev/null || true
+          tree_entries="100644 blob $(git hash-object -w yahoo-sports-news.json)\tyahoo-sports-news.json"
+          if git show data:train.json > /tmp/train.json 2>/dev/null; then
+            blob2=$(git hash-object -w /tmp/train.json)
+            tree_entries="$tree_entries\n100644 blob $blob2\ttrain.json"
+          fi
+          if git show data:train-mail.json > /tmp/train-mail.json 2>/dev/null; then
+            blob3=$(git hash-object -w /tmp/train-mail.json)
+            tree_entries="$tree_entries\n100644 blob $blob3\ttrain-mail.json"
+          fi
+          tree=$(printf "$tree_entries\n" | git mktree)
+          commit=$(git commit-tree "$tree" -m "yahoo sports news data $(date -u +%Y-%m-%dT%H:%M:%SZ)")
+          git push -f origin "$commit:refs/heads/data"

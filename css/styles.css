@@ -625,6 +625,81 @@ body {
   flex: 1 1 auto;
 }
 
+/* 定時ニュース欄を横に二分割するコンテナ（左＝メールダイジェスト、
+   右＝Yahoo!ニュース見出し。2026-08-20追加）。.week-calendar（.panel）自体は
+   display:flex; flex-direction:columnなので、ここは.panelの中身として
+   横方向に伸びる1段だけ増やす形になる。 */
+.news-split {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 16px;
+}
+
+.news-split-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.news-split-col-digest {
+  padding-right: 16px;
+  border-right: 1px solid var(--panel-edge);
+}
+
+/* 右側（Yahoo!ニュース）はスポーツ総合／モータースポーツの2段構成
+   （1本のリストに混ぜると件数の少ないモータースポーツが埋もれるため、
+   2026-08-20、Hideの指定で分けた）。 */
+.news-split-col-yahoo {
+  gap: 10px;
+}
+
+.yahoo-news-block {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.block-subtitle {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.yahoo-news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.yahoo-news-item {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
+.yahoo-news-item:last-child {
+  border-bottom: none;
+}
+
+.yahoo-news-link {
+  display: block;
+  font-size: 15px;
+  color: var(--accent);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.yahoo-news-link:hover {
+  text-decoration: underline;
+}
+
 /* 定時ニュースダイジェスト（Gmail）へのリンク一覧。メール1通＝1行。
    新しいものが上（js/news.jsがGmail検索結果を新しい順のまま並べる）。 */
 .news-digest-list {
@@ -870,6 +945,7 @@ body {
   .today-list,
   .week-list,
   .news-digest-list,
+  .yahoo-news-list,
   .market-widgets {
     overflow-y: visible;
     flex: 0 0 auto;
@@ -877,5 +953,23 @@ body {
 
   .weekly-panel {
     overflow-y: visible;
+  }
+
+  /* 定時ニュース欄も横二分割をやめて縦積みにする（幅が狭いと2列は窮屈なため）。
+     左右の仕切り線（.news-split-col-digest の右ボーダー）は縦積みだと不要なので、
+     下ボーダーに替える。 */
+  .news-split {
+    flex-direction: column;
+  }
+
+  .news-split-col-digest {
+    padding-right: 0;
+    padding-bottom: 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--panel-edge);
+  }
+
+  .news-split-col-yahoo {
+    gap: 16px;
   }
 }

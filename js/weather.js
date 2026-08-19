@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=20260813-weather-fallback';
+import { CONFIG } from './config.js?v=20260820-yahoo-sports';
 import {
   clear,
   el,

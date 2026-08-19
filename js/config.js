@@ -24,6 +24,13 @@ export const CONFIG = {
   trainMailDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train-mail.json',
 
+  // Yahoo!ニュース見出しJSONの取得先。train.jsonと同じ data ブランチ・raw経由
+  // （Yahoo側のRSSにCORSが無くブラウザから直接fetchできないため、
+  // scripts/fetch-yahoo-sports-news.mjs がGitHub Actionsで定期取得して書く。
+  // 2026-08-20、Hideの依頼で「定時ニュース」欄の右側に追加）。
+  yahooSportsNewsDataUrl:
+    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/yahoo-sports-news.json',
+
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。
   cities: [
@@ -62,6 +69,7 @@ export const CONFIG = {
     calendar: 5 * 60 * 1000,
     weather: 30 * 60 * 1000,
     train: 5 * 60 * 1000,
+    yahooSportsNews: 20 * 60 * 1000,
   },
 
   // 来客・外出として拾うタイトルのキーワード（部分一致）。

@@ -55,14 +55,19 @@ jobs:
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: |
           set -euo pipefail
-          # 既存の train.json（銀座線・train.ymlが書く）を data ブランチから引き継ぎ、
-          # train-mail.json だけを追加/上書きする（同じ data ブランチを2つの
+          # 既存の train.json（銀座線・train.ymlが書く）・yahoo-sports-news.json
+          # （yahoo-sports-news.ymlが書く）を data ブランチから引き継ぎ、
+          # train-mail.json だけを追加/上書きする（同じ data ブランチを複数の
           # ワークフローが別ファイルで共有するため、他方のファイルを消さないようにする）。
           git fetch origin data:data 2>/dev/null || true
           tree_entries="100644 blob $(git hash-object -w train-mail.json)\ttrain-mail.json"
           if git show data:train.json > /tmp/train.json 2>/dev/null; then
             blob2=$(git hash-object -w /tmp/train.json)
             tree_entries="$tree_entries\n100644 blob $blob2\ttrain.json"
+          fi
+          if git show data:yahoo-sports-news.json > /tmp/yahoo-sports-news.json 2>/dev/null; then
+            blob3=$(git hash-object -w /tmp/yahoo-sports-news.json)
+            tree_entries="$tree_entries\n100644 blob $blob3\tyahoo-sports-news.json"
           fi
           tree=$(printf "$tree_entries\n" | git mktree)
           commit=$(git commit-tree "$tree" -m "train-mail data $(date -u +%Y-%m-%dT%H:%M:%SZ)")
