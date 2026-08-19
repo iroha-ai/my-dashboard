@@ -19,7 +19,7 @@ import {
   showTasksMessage,
   updateTasks,
 } from './tasks.js?v=20260813-weather-fallback';
-import { updateNewsDigest } from './news.js?v=20260819-news-count';
+import { updateNewsDigest } from './news.js?v=20260819-news-count-v2';
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 // タスク欄（Google Tasks）、定時ニュース欄（Gmail）も同じ画面に出すため、

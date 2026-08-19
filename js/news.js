@@ -74,22 +74,48 @@ function findBodyPart(payload, mimeType) {
   return null;
 }
 
+// 件数推定用に HTML エンティティを最低限戻す。
+function decodeHtmlEntities(text) {
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+}
+
 // 本文からニュース件数を推定する。テンプレート変更に備え、複数の取り方を順に試す。
 // どれも当てはまらなければ null（件数は表示しないが、日時・件名・リンクは残す）。
-function countArticles(htmlBody) {
-  if (!htmlBody) return null;
+function countArticles(htmlBody, plainBody = '') {
+  const html = decodeHtmlEntities(htmlBody || '');
+  const plain = plainBody || html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, '\n');
+  const source = `${html}\n${plain}`;
 
-  // 0件配信（旧テンプレート / news-digest-html.py）
-  if (/今回の新着重要情報はありません/.test(htmlBody)) return 0;
-  if (/今回は新着ニュースがなかった/.test(htmlBody)) return 0;
+  if (!source.trim()) return null;
 
-  // 新テンプレート（2026-08-18〜）: ヘッダー「… ・ 新着 N 件」
-  const headerCount = htmlBody.match(/新着\s*(\d+)\s*件/);
+  // 0件配信
+  if (/今回の新着重要情報はありません/.test(source)) return 0;
+  if (/今回は新着ニュースがなかった/.test(source)) return 0;
+
+  // news-digest-html.py（2026-08-17〜）: ヘッダー「… ・ 新着 N 件」
+  const headerCount = source.match(/新着\s*[：:]?\s*(\d+)\s*件/);
   if (headerCount) return Number(headerCount[1]);
 
-  // 旧テンプレート: 「原文を読む」ボタンの背景色の出現数
-  const legacyButtons = htmlBody.match(/background:#1976d2/gi);
-  if (legacyButtons) return legacyButtons.length;
+  // 旧テンプレート: 「原文を読む」リンク／ボタン
+  const readOriginal = source.match(/原文を読む/g);
+  if (readOriginal?.length) return readOriginal.length;
+
+  // 旧テンプレート: 青ボタンの background（空白・background-color・rgb 表記ゆれ）
+  const legacyButtons = html.match(/background(?:-color)?\s*:\s*(?:#1976d2|rgb\(\s*25\s*,\s*118\s*,\s*210\s*\))/gi);
+  if (legacyButtons?.length) return legacyButtons.length;
+
+  // news-digest-html.py の記事見出し「1. タイトル」
+  const numberedHeadings = html.match(/<h[1-3][^>]*>\s*\d+\./gi);
+  if (numberedHeadings?.length) return numberedHeadings.length;
+
+  // プレーンテキスト／HTML 化後テキストの番号付き行
+  const numberedLines = plain.match(/^\s*\d+[\.)．、]\s+/gm);
+  if (numberedLines?.length) return numberedLines.length;
 
   return null;
 }
@@ -107,11 +133,12 @@ async function fetchDigestMeta(token, id) {
   const headers = data.payload?.headers || [];
   const subject = headers.find((h) => h.name === 'Subject')?.value || '(件名なし)';
   const html = decodeBase64Url(findBodyPart(data.payload, 'text/html'));
+  const plain = decodeBase64Url(findBodyPart(data.payload, 'text/plain'));
   return {
     id,
     subject,
     internalDate: Number(data.internalDate || 0),
-    count: countArticles(html),
+    count: countArticles(html, plain),
   };
 }
 
