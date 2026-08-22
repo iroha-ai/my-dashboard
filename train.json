@@ -1,0 +1,12 @@
+{
+  "updatedAt": "2026-08-22T22:49:57.347Z",
+  "items": [
+    {
+      "id": "ginza",
+      "label": "銀座線",
+      "ok": true,
+      "isNormal": false,
+      "status": "ダイヤ乱れ"
+    }
+  ]
+}
