@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260823-news-keyword-white';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-keyword-white';
+import { CONFIG } from './config.js?v=20260823-news-white-f1-purple';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-white-f1-purple';
 
 // 2026-08-23以降の現行経路。automation-2 が data ブランチへ差し替える
 // 見出しJSONを読み、Yahoo!ニュース欄と同じく記事見出しを直接表示する。

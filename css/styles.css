@@ -692,7 +692,7 @@ body {
 .yahoo-news-link {
   display: block;
   font-size: 15px;
-  color: var(--accent);
+  color: #fff;
   text-decoration: none;
   line-height: 1.4;
 }
