@@ -1,7 +1,7 @@
-import { CONFIG } from './config.js?v=20260823-news-yahoo-title';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-yahoo-title';
+import { CONFIG } from './config.js?v=20260823-news-soccer-summary-colors';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-soccer-summary-colors';
 
-// Yahoo!ニュースの見出し一覧（スポーツ総合／モータースポーツ）。
+// Yahoo!ニュースの2行要約一覧（サッカー／モータースポーツ）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する
 // （2026-08-20、Hideの依頼で追加。index.html の .news-split 参照）。
 //
@@ -11,10 +11,17 @@ import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-yah
 
 const MAX_ITEMS = 8;
 
-// 見出しにF1・横浜Fマリノス関連の語が含まれていたら紫字にする
-// （2026-08-20、Hideの指定。CONFIG.yahooNewsHighlightKeywords参照）。
-function isHighlighted(title) {
-  return CONFIG.yahooNewsHighlightKeywords.some((kw) => title.includes(kw));
+function getHighlightClass(listId, title) {
+  if (CONFIG.yahooNewsMarinosKeywords.some((kw) => title.includes(kw))) {
+    return 'is-purple-highlight';
+  }
+  if (
+    listId === 'yahoo-motorsports-list' &&
+    CONFIG.yahooMotorsportsYellowKeywords.some((kw) => title.includes(kw))
+  ) {
+    return 'is-yellow-highlight';
+  }
+  return '';
 }
 
 function renderList(listId, items) {
@@ -33,10 +40,10 @@ function renderList(listId, items) {
     a.href = item.link;
     a.target = '_blank';
     a.rel = 'noopener';
-    a.className = isHighlighted(item.title)
-      ? 'yahoo-news-link is-highlight'
-      : 'yahoo-news-link';
-    a.textContent = item.title;
+    const highlightClass = getHighlightClass(listId, item.title);
+    a.className = `yahoo-news-link${highlightClass ? ` ${highlightClass}` : ''}`;
+    const summary = item.summary || item.title;
+    a.appendChild(el('span', 'news-summary', summary));
     li.appendChild(a);
     list.appendChild(li);
   }

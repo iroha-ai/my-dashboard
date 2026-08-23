@@ -1,17 +1,21 @@
 #!/usr/bin/env node
-// Yahoo!ニュースのRSS（スポーツ総合／モータースポーツ）を取得し、定時ニュース欄の
+// Yahoo!ニュースのRSS（サッカー／モータースポーツ）を取得し、定時ニュース欄の
 // 右側に出す見出し一覧JSONを書き出す（2026-08-20、Hideの依頼で追加）。
 //
-// Yahoo!ニュースの公式カテゴリRSSは国内・国際・経済・エンタメ・スポーツ・IT・科学・
-// 地域の8種のみで、「モータースポーツ」単体のカテゴリRSSは存在しない
-// （https://news.yahoo.co.jp/rss で確認済み）。そのため、モータースポーツ枠は
-// 同社にニュースを配信している media/msportcom（motorsport.com 日本版。F1中心）の
-// RSSで代替している。
+// Yahoo!ニュースの公式カテゴリRSSには独立したサッカーRSSがないため、
+// サッカー専門媒体の公式RSSを束ねてサッカー欄にする。「モータースポーツ」単体の
+// カテゴリRSSも存在しないため、同社にニュースを配信しているmedia/msportcom
+// （motorsport.com 日本版。F1中心）のRSSで代替している。
 //
 // どちらのRSSも Access-Control-Allow-Origin が無く、ブラウザから直接fetchできない
 // （train.jsonと同じ理由・同じ仕組みで回避する）。このスクリプトをGitHub Actionsから
 // 定期実行し、data ブランチへJSONを書き出す。
-const SPORTS_RSS = 'https://news.yahoo.co.jp/rss/topics/sports.xml';
+const SOCCER_RSS_FEEDS = [
+  'https://news.yahoo.co.jp/rss/media/soccermzw/all.xml',
+  'https://news.yahoo.co.jp/rss/media/gekisaka/all.xml',
+  'https://news.yahoo.co.jp/rss/media/goal/all.xml',
+  'https://news.yahoo.co.jp/rss/media/soccerk/all.xml',
+];
 const MOTORSPORTS_RSS = 'https://news.yahoo.co.jp/rss/media/msportcom/all.xml';
 const MAX_ITEMS = 10;
 const TIMEOUT_MS = 15_000;
@@ -89,19 +93,35 @@ async function fetchFeed(url, opts) {
   return items.slice(0, MAX_ITEMS);
 }
 
+async function fetchSoccerFeed() {
+  const feedGroups = await Promise.all(SOCCER_RSS_FEEDS.map((url) => fetchFeed(url)));
+  const seen = new Set();
+  const items = [];
+  for (const group of feedGroups) {
+    for (const item of group) {
+      if (seen.has(item.link)) continue;
+      seen.add(item.link);
+      items.push(item);
+      if (items.length >= MAX_ITEMS) return items;
+    }
+  }
+  return items;
+}
+
 async function main() {
   // 片方だけ失敗した場合も含め、まとめて失敗扱いにする。中途半端な内容で
   // dataブランチを上書きすると、失敗した側の欄が「空」で確定してしまい、
   // 直前の正常な見出しが消えてしまうため（train.json同様、取れないときは
   // 直前の状態を保つ方を優先する）。
-  const [sports, motorsports] = await Promise.all([
-    fetchFeed(SPORTS_RSS),
+  const [soccer, motorsports] = await Promise.all([
+    fetchSoccerFeed(),
     fetchFeed(MOTORSPORTS_RSS, { stripSuffix: true }),
   ]);
 
   const payload = {
     updatedAt: new Date().toISOString(),
-    sports,
+    // 既存のdashboard JSON互換のため、サッカー欄もsportsキーで保存する。
+    sports: soccer,
     motorsports,
   };
   process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);

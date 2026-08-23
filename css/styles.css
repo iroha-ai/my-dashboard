@@ -650,7 +650,7 @@ body {
   border-right: 1px solid var(--panel-edge);
 }
 
-/* 右側（Yahoo!ニュース）はスポーツ総合／モータースポーツの2段構成
+/* 右側（Yahoo!ニュース）はサッカー／モータースポーツの2段構成
    （1本のリストに混ぜると件数の少ないモータースポーツが埋もれるため、
    2026-08-20、Hideの指定で分けた）。 */
 .news-split-col-yahoo {
@@ -716,10 +716,15 @@ body {
   text-decoration: underline;
 }
 
-/* F1・横浜Fマリノス関連の見出しを紫字に（2026-08-20、Hideの指定。
-   js/yahoo-sports-news.js の isHighlighted 参照）。 */
-.yahoo-news-link.is-highlight {
+/* 横浜F・マリノス関連は紫、指定されたモータースポーツ語は黄色。
+   js/yahoo-sports-news.js の getHighlightClass 参照。 */
+.yahoo-news-link.is-purple-highlight {
   color: var(--highlight);
+  font-weight: 400;
+}
+
+.yahoo-news-link.is-yellow-highlight {
+  color: var(--caution);
   font-weight: 400;
 }
 
