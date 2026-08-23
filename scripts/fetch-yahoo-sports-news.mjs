@@ -17,6 +17,18 @@ const SOCCER_RSS_FEEDS = [
   'https://news.yahoo.co.jp/rss/media/soccerk/all.xml',
 ];
 const MOTORSPORTS_RSS = 'https://news.yahoo.co.jp/rss/media/msportcom/all.xml';
+const MARINOS_KEYWORDS = ['マリノス', '横浜FM', '横浜ＦＭ', '横浜F・マリノス', '横浜Ｆ・マリノス'];
+const MOTORSPORTS_YELLOW_KEYWORDS = [
+  '角田',
+  'ホンダ',
+  'ＨＯＮＤＡ',
+  'Honda',
+  'HONDA',
+  'アストンマーティン',
+  'アストンマーチン',
+  'Aston Martin',
+  'アロンソ',
+];
 const MAX_ITEMS = 10;
 const TIMEOUT_MS = 15_000;
 const UA =
@@ -108,6 +120,13 @@ async function fetchSoccerFeed() {
   return items;
 }
 
+function addSearchKeywords(items, fallback, specialKeywords) {
+  return items.map((item) => ({
+    ...item,
+    searchKeyword: specialKeywords.find((kw) => item.title.includes(kw)) || fallback,
+  }));
+}
+
 async function main() {
   // 片方だけ失敗した場合も含め、まとめて失敗扱いにする。中途半端な内容で
   // dataブランチを上書きすると、失敗した側の欄が「空」で確定してしまい、
@@ -121,8 +140,8 @@ async function main() {
   const payload = {
     updatedAt: new Date().toISOString(),
     // 既存のdashboard JSON互換のため、サッカー欄もsportsキーで保存する。
-    sports: soccer,
-    motorsports,
+    sports: addSearchKeywords(soccer, 'サッカー', MARINOS_KEYWORDS),
+    motorsports: addSearchKeywords(motorsports, 'モータースポーツ', MOTORSPORTS_YELLOW_KEYWORDS),
   };
   process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 }

@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260823-news-soccer-summary-colors';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-soccer-summary-colors';
+import { CONFIG } from './config.js?v=20260823-news-yahoo-keyword-labels';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-yahoo-keyword-labels';
 
 // Yahoo!ニュースの2行要約一覧（サッカー／モータースポーツ）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する
@@ -11,17 +11,23 @@ import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-soc
 
 const MAX_ITEMS = 8;
 
-function getHighlightClass(listId, title) {
-  if (CONFIG.yahooNewsMarinosKeywords.some((kw) => title.includes(kw))) {
-    return 'is-purple-highlight';
+function findKeyword(keywords, title) {
+  return keywords.find((kw) => title.includes(kw)) || '';
+}
+
+function getKeywordInfo(listId, title, itemKeyword = '') {
+  const marinosKeyword = findKeyword(CONFIG.yahooNewsMarinosKeywords, title);
+  if (marinosKeyword) {
+    return { keyword: itemKeyword || marinosKeyword, className: 'is-purple-highlight' };
   }
-  if (
-    listId === 'yahoo-motorsports-list' &&
-    CONFIG.yahooMotorsportsYellowKeywords.some((kw) => title.includes(kw))
-  ) {
-    return 'is-yellow-highlight';
+  if (listId === 'yahoo-motorsports-list') {
+    const yellowKeyword = findKeyword(CONFIG.yahooMotorsportsYellowKeywords, title);
+    if (yellowKeyword) {
+      return { keyword: itemKeyword || yellowKeyword, className: 'is-yellow-highlight' };
+    }
+    return { keyword: itemKeyword || 'モータースポーツ', className: '' };
   }
-  return '';
+  return { keyword: itemKeyword || 'サッカー', className: '' };
 }
 
 function renderList(listId, items) {
@@ -40,10 +46,13 @@ function renderList(listId, items) {
     a.href = item.link;
     a.target = '_blank';
     a.rel = 'noopener';
-    const highlightClass = getHighlightClass(listId, item.title);
-    a.className = `yahoo-news-link${highlightClass ? ` ${highlightClass}` : ''}`;
+    const { keyword, className } = getKeywordInfo(listId, item.title, item.searchKeyword);
+    a.className = `yahoo-news-link${className ? ` ${className}` : ''}`;
     const summary = item.summary || item.title;
-    a.appendChild(el('span', 'news-summary', summary));
+    const summaryNode = el('span', 'news-summary');
+    summaryNode.appendChild(el('span', 'news-search-keyword', `【${keyword}】`));
+    summaryNode.appendChild(document.createTextNode(summary));
+    a.appendChild(summaryNode);
     li.appendChild(a);
     list.appendChild(li);
   }
