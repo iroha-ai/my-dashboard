@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
+import { CONFIG } from './config.js?v=20260823-news-headlines';
 import {
   clear,
   el,
@@ -6,7 +6,7 @@ import {
   pad2,
   showMessage,
   weekdayLabel,
-} from './util.js?v=20260813-weather-fallback';
+} from './util.js?v=20260823-news-headlines';
 
 // 気象庁の警報・注意報コード。表にない番号が来ても落とさず、番号のまま出す。
 const WARNING_NAMES = {

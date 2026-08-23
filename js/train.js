@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
-import { fetchJson } from './util.js?v=20260813-weather-fallback';
+import { CONFIG } from './config.js?v=20260823-news-headlines';
+import { fetchJson } from './util.js?v=20260823-news-headlines';
 
 // 運行情報。詳しい文言は出さず、該当路線のリンクの色を変えるだけにしている
 // （Hideの要望: 「アラートを受信したら、リンクの色を変えるだけでいい。

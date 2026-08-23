@@ -49,6 +49,10 @@ jobs:
             blob3=$(git hash-object -w /tmp/train-mail.json)
             tree_entries="$tree_entries\n100644 blob $blob3\ttrain-mail.json"
           fi
+          if git show data:news-headlines.json > /tmp/news-headlines.json 2>/dev/null; then
+            blob4=$(git hash-object -w /tmp/news-headlines.json)
+            tree_entries="$tree_entries\n100644 blob $blob4\tnews-headlines.json"
+          fi
           tree=$(printf "$tree_entries\n" | git mktree)
           commit=$(git commit-tree "$tree" -m "yahoo sports news data $(date -u +%Y-%m-%dT%H:%M:%SZ)")
           git push -f origin "$commit:refs/heads/data"

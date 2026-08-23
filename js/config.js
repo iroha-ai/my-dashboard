@@ -31,6 +31,11 @@ export const CONFIG = {
   yahooSportsNewsDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/yahoo-sports-news.json',
 
+  // automation-2 が毎日7:00・12:00・16:00に差し替える定時ニュース見出し。
+  // Gmailを介さず、Yahoo!ニュース見出しと同じdataブランチ経路で読む。
+  newsHeadlinesDataUrl:
+    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/news-headlines.json',
+
   // Yahoo!ニュース見出しのうち、見出し（タイトル）にこの語を含む記事は紫字にする
   // （2026-08-20、Hideの指定。F1＝角田裕毅、横浜Fマリノス＝応援チームなので、
   // 「スポーツ」「モータースポーツ」いずれの欄でも見つけやすくする）。
@@ -74,6 +79,7 @@ export const CONFIG = {
     calendar: 5 * 60 * 1000,
     weather: 30 * 60 * 1000,
     train: 5 * 60 * 1000,
+    newsHeadlines: 5 * 60 * 1000,
     yahooSportsNews: 20 * 60 * 1000,
   },
 

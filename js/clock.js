@@ -1,4 +1,4 @@
-import { pad2, weekdayLabel } from './util.js?v=20260813-weather-fallback';
+import { pad2, weekdayLabel } from './util.js?v=20260823-news-headlines';
 
 export function startClock() {
   const timeNode = document.getElementById('clock-time');

@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260813-weather-fallback';
+import { CONFIG } from './config.js?v=20260823-news-headlines';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-headlines';
 
 // Yahoo!ニュースの見出し一覧（スポーツ総合／モータースポーツ）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する

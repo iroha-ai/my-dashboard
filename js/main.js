@@ -1,13 +1,13 @@
 // ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
-import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
-import { startClock } from './clock.js?v=20260813-weather-fallback';
-import { updateCalendar } from './calendar.js?v=20260819-news-count-v2';
-import { updateTrain } from './train.js?v=20260819-train-color';
-import { updateWeather } from './weather.js?v=20260813-weather-fallback';
-import { updateDeliveryStatus } from './news.js?v=20260819-news-count-v2';
-import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260820-yahoo-highlight';
-import { clear, el, runPeriodically } from './util.js?v=20260813-weather-fallback';
+import { CONFIG } from './config.js?v=20260823-news-headlines';
+import { startClock } from './clock.js?v=20260823-news-headlines';
+import { updateCalendar } from './calendar.js?v=20260823-news-headlines';
+import { updateTrain } from './train.js?v=20260823-news-headlines';
+import { updateWeather } from './weather.js?v=20260823-news-headlines';
+import { updateNewsDigest } from './news.js?v=20260823-news-headlines';
+import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260823-news-headlines';
+import { clear, el, runPeriodically } from './util.js?v=20260823-news-headlines';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。
@@ -28,7 +28,7 @@ function renderUpdatedAt() {
 
   const time = (key) => updatedAt.has(key) ? formatTime(updatedAt.get(key)) : '--:--';
   node.textContent =
-    `更新　予定等 ${time('calendar')}｜天気 ${time('weather')}｜運行 ${time('train')}`;
+    `更新　予定等 ${time('calendar')}｜天気 ${time('weather')}｜運行 ${time('train')}｜ニュース ${time('news')}`;
 }
 
 function markUpdated(key) {
@@ -62,6 +62,7 @@ const FAILURE_LABELS = {
   calendar: '予定等の更新に失敗',
   weather: '天気の更新に失敗',
   train: '運行情報の更新に失敗',
+  news: '定時ニュースの更新に失敗',
   yahooSportsNews: 'Yahoo!ニュースの更新に失敗',
 };
 
@@ -90,8 +91,8 @@ startClock();
 renderUpdatedAt();
 
 runPeriodically(async () => {
-  await updateDeliveryStatus();
-}, CONFIG.intervals.calendar);
+  await updateAndStamp('news', updateNewsDigest);
+}, CONFIG.intervals.newsHeadlines);
 
 runPeriodically(async () => {
   await updateAndStamp('calendar', updateCalendar);

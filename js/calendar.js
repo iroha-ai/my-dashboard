@@ -3,7 +3,7 @@
 // 新しく足したキー（transitKeywords 等）が undefined になって
 // `Cannot read properties of undefined (reading 'some')` で落ちる（2026-08-13に実際に発生）。
 // 加えて、同じファイルをクエリ有り・無しで読むと別モジュールとして二重に評価される。
-import { CONFIG } from './config.js?v=20260820-yahoo-highlight';
+import { CONFIG } from './config.js?v=20260823-news-headlines';
 import {
   addDays,
   clear,
@@ -13,31 +13,18 @@ import {
   showMessage,
   startOfDay,
   weekdayLabel,
-} from './util.js?v=20260813-weather-fallback';
+} from './util.js?v=20260823-news-headlines';
 import {
   renderTasks,
   showTasksMessage,
   updateTasks,
-} from './tasks.js?v=20260813-weather-fallback';
-import { updateNewsDigest } from './news.js?v=20260819-news-count-v2';
-
+} from './tasks.js?v=20260823-news-headlines';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
-// タスク欄（Google Tasks）、定時ニュース欄（Gmail）も同じ画面に出すため、
-// カレンダーと合わせて要求する。2026-08-07 にスコープへ tasks.readonly を、
-// 2026-08-08 に gmail.readonly を追加した。既存の同意には含まれていないため、
-// 追加後の初回接続だけは「接続する」を押し直す必要がある。
-//
-// 【gmail.readonlyについて】本当に必要なのは件名・日時だけ（本文は使わない）
-// なので、最初は最小権限の gmail.metadata を使う予定だった。しかし
-// gmail.metadata スコープは messages.list の q パラメータ（検索クエリ）に
-// 対応しておらず、「件名に定時ニュースダイジェストを含むメールだけ」を
-// サーバー側で絞り込めない。全メールを取得してクライアント側で絞り込むのは
-// 非現実的なため、gmail.readonly（本文も読める、より広いスコープ）を使っている。
-// 実際の使用は件名・日時の取得のみ（js/news.js参照）。
+// タスク欄も同じ画面に出すため、カレンダーと合わせてtasks.readonlyを要求する。
+// 定時ニュースは2026-08-23から公開JSONを直接読むため、Gmail権限は不要になった。
 const SCOPE =
   'https://www.googleapis.com/auth/calendar.readonly ' +
-  'https://www.googleapis.com/auth/tasks.readonly ' +
-  'https://www.googleapis.com/auth/gmail.readonly';
+  'https://www.googleapis.com/auth/tasks.readonly';
 
 let tokenClient = null;
 let accessToken = null;
@@ -48,7 +35,7 @@ let requestSignIn = null;
 // これまではJS変数だけに保持していたため、ページを再読み込みするたびに
 // トークンがまだ有効（最長1時間）でも毎回サインインをやり直す必要があった。
 // リロード直後にlocalStorageから復元できれば、有効期限内は「接続する」を
-// 押し直さずに済む。読み取り専用スコープ（calendar/tasks/gmail.readonly）の
+// 押し直さずに済む。読み取り専用スコープ（calendar/tasks）の
 // 短命トークンなので、常時表示のこの端末向けにはlocalStorage保持で許容している。
 const TOKEN_STORAGE_KEY = 'my-dashboard:google-token';
 
@@ -355,7 +342,7 @@ export async function updateCalendar(onStatus) {
   if (new URLSearchParams(location.search).get('demo') === '1') {
     try {
       const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import(
-        './demo-events.js?v=20260813-weather-fallback'
+        './demo-events.js?v=20260823-news-headlines'
       );
       renderAll(DEMO_EVENTS());
       renderTasks(DEMO_TASKS());
@@ -384,7 +371,6 @@ export async function updateCalendar(onStatus) {
     renderAll(await fetchEvents(token, from, to));
     onStatus?.('calendar', null, false);
     requestSignIn = null;
-    await updateNewsDigest(token, onStatus);
     await updateTasks(token, onStatus);
   } catch (err) {
     console.error('カレンダーの取得に失敗', err);
@@ -398,7 +384,6 @@ export async function updateCalendar(onStatus) {
         renderAll(await fetchEvents(token, from, to));
         onStatus?.('calendar', null, false);
         requestSignIn = null;
-        await updateNewsDigest(token, onStatus);
         await updateTasks(token, onStatus);
       } catch (retryErr) {
         // ポップアップを閉じた・許可しなかった等。押し直せる状態のまま、理由だけ出す。

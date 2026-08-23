@@ -626,7 +626,7 @@ body {
   flex: 1 1 auto;
 }
 
-/* 定時ニュース欄を横に二分割するコンテナ（左＝メールダイジェスト、
+/* 定時ニュース欄を横に二分割するコンテナ（左＝定時巡回の見出し、
    右＝Yahoo!ニュース見出し。2026-08-20追加）。.week-calendar（.panel）自体は
    display:flex; flex-direction:columnなので、ここは.panelの中身として
    横方向に伸びる1段だけ増やす形になる。 */
@@ -706,6 +706,10 @@ body {
 .yahoo-news-link.is-highlight {
   color: var(--highlight);
   font-weight: 600;
+}
+
+.news-headline-link.is-unverified {
+  color: #b45309;
 }
 
 /* 定時ニュースダイジェスト（Gmail）へのリンク一覧。メール1通＝1行。

@@ -19,10 +19,10 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 | 本番 URL | `https://iroha-ai.github.io/my-dashboard/` |
 | GitHub Pages | 有効化済み（`main` ルート） |
 | Google Cloud プロジェクト | `my-dashboard`（ID: `the-name-504804-c2`） |
-| 有効化済みAPI | Google Calendar API、Google Tasks API、Gmail API（2026-08-08追加・有効化確認済み） |
+| 有効化済みAPI | Google Calendar API、Google Tasks API。Gmail APIは過去の定時ニュース表示用に有効化済みだが、2026-08-23以降はニュース表示に使わない |
 | OAuth クライアント | 発行済み（`js/config.js` の `googleClientId`）。テストユーザーに Hide のアカウント登録済み |
-| OAuthスコープ | `calendar.readonly` + `tasks.readonly` + `gmail.readonly`（2026-08-08追加・再同意・実機確認済み） |
-| GitHub Actions | `運行情報の更新`（銀座線・5分ごと cron）＋`運行情報の更新（ジョルダンのメール検知：中央線・青梅線）`（GAS からの repository_dispatch）。どちらも `data` ブランチへ orphan 上書き。相場用cronは撤去済み |
+| OAuthスコープ | `calendar.readonly` + `tasks.readonly`。`gmail.readonly`は2026-08-23に不要化 |
+| GitHub Actions | 運行情報2系統とYahoo!ニュース見出しを更新。いずれも `data` ブランチへ orphan 上書きし、`news-headlines.json`を含む他系統のJSONを保持する |
 | GitHub Secrets | **無し。**（`TWELVEDATA_API_KEY` は不要になり削除済み。運行情報の取得元もキー不要）。ただし中央線・青梅線用の GitHub PAT は Google Apps Script 側の Script Properties に別途必要（下記「運行情報：中央線・青梅線をジョルダンのメール検知に切替」参照） |
 
 ローカルの作業コピーは `C:\Users\youtr\dev\my-dashboard`（このリポジトリの clone）。
@@ -58,10 +58,9 @@ Hide 個人用の常時表示ダッシュボード。会社モニターに GitHu
 ```
 
 来客・外出／タスクは**今日ぶんだけ**表示する（一週間分は「これからの一週間」欄で見られる）。
-「これからの一週間」の右隣りには、定時ニュースダイジェスト（Gmail）へのリンク一覧を
-表示している（2026-08-08。当初はGoogleカレンダー埋め込みだったが、Hideの指示で
-定時ニュースに置き換えた。詳細は下記「『これからの一週間』の右隣り：Googleカレンダー
-埋め込み→定時ニュースへ置き換え」参照）。
+「これからの一週間」の右隣りには、automation-2の巡回結果を定時ニュース見出しとして
+直接表示している。`data`ブランチの`news-headlines.json`を読み、クリックすると配信元記事を
+開く。右側のYahoo!ニュース見出しと同じ公開JSON経路で、Google認証に依存しない。
 
 ## 運行情報をライブ検知に復活（2026-08-07）
 
@@ -263,7 +262,17 @@ JR東日本公式の運行情報で確認済み。実際は復旧していた）
 3. 「カレンダー欄はグーグルカレンダーではなく、メールに定時ニュースダイジェストという
    名前で送られてきたもののリンクを掲載する。新しいものを上にアペンドしていく」
    → **Googleカレンダー埋め込みは撤去し、定時ニュースダイジェストへのリンク一覧に
-   置き換えた。以下は現在（3の後）の実装内容。**
+   置き換えた。以下は２０２６年８月２２日までの旧実装の記録。**
+
+4. 「ヤフーニュースの見出し掲載の運用に合わせたい。検索キーワード・検索サイト、頻度は変更しない」
+   → **Gmail送信とメールリンク表示をやめ、巡回ごとの現在の見出しを`news-headlines.json`へ
+   差し替え、記事へ直接リンクする方式へ変更した。**
+
+**２０２６年８月２３日以降の実装:** `js/news.js`が`CONFIG.newsHeadlinesDataUrl`を読み、
+最大30件の見出しを一行ずつ表示する。`js/main.js`から5分ごとに独立更新するため、カレンダーの
+Google認証が切れていてもニュースは表示される。`js/calendar.js`のOAuthスコープから
+`gmail.readonly`を外した。`data`ブランチを書き換える3ワークフローは
+`news-headlines.json`を引き継ぐ。
 
 **技術的な制約（1の時点で確認したこと。参考情報として残す）:** Googleの認証済み
 インタラクティブなカレンダー画面（`calendar.google.com/calendar/u/0/r/day`等、編集が
