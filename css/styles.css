@@ -1026,3 +1026,165 @@ body {
     gap: 16px;
   }
 }
+
+
+/* ---------- スマホ幅の崩れ止め（2026-08-24） ---------- */
+@media (max-width: 600px) {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-size: 16px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .clock {
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+
+  .clock-time {
+    font-size: clamp(24px, 8vw, 30px);
+  }
+
+  .clock-date {
+    font-size: 14px;
+  }
+
+  .topbar-meta {
+    width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
+  .updated-at,
+  .status-strip {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .status-strip {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .layout {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .layout > *,
+  .center > *,
+  .panel,
+  .weather-row,
+  .news-split,
+  .news-split-col,
+  .news-split-col-digest,
+  .news-split-col-yahoo {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .panel {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .weather-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .weather-card {
+    width: 100%;
+    grid-template-columns: 38px minmax(0, auto) minmax(0, 1fr);
+    column-gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .weather-temp {
+    font-size: 32px;
+  }
+
+  .weather-range,
+  .weather-desc {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .today-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .today-time {
+    white-space: normal;
+  }
+
+  .week-day {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .week-event {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .news-split {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .news-split-col {
+    flex: 0 0 auto;
+  }
+
+  .news-split-col-digest {
+    padding: 0 0 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--panel-edge);
+  }
+
+  .news-summary,
+  .yahoo-news-link,
+  .news-headline-link {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .market-widgets {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .market-widget,
+  .tradingview-widget-container,
+  .tradingview-widget-container__widget,
+  .tradingview-widget-container iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  img, iframe, svg, canvas {
+    max-width: 100%;
+  }
+}
