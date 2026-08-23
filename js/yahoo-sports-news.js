@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260823-news-digest-keyword-blue';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-digest-keyword-blue';
+import { CONFIG } from './config.js?v=20260823-news-general-label';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-general-label';
 
 // Yahoo!ニュースの2行要約一覧（サッカー／モータースポーツ）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する
@@ -15,19 +15,19 @@ function findKeyword(keywords, title) {
   return keywords.find((kw) => title.includes(kw)) || '';
 }
 
-function getKeywordInfo(listId, title, itemKeyword = '') {
+function getKeywordInfo(listId, title) {
   const marinosKeyword = findKeyword(CONFIG.yahooNewsMarinosKeywords, title);
   if (marinosKeyword) {
-    return { keyword: itemKeyword || marinosKeyword, className: 'is-purple-highlight' };
+    return { keyword: marinosKeyword, className: 'is-purple-highlight' };
   }
   if (listId === 'yahoo-motorsports-list') {
     const yellowKeyword = findKeyword(CONFIG.yahooMotorsportsYellowKeywords, title);
     if (yellowKeyword) {
-      return { keyword: itemKeyword || yellowKeyword, className: 'is-yellow-highlight' };
+      return { keyword: yellowKeyword, className: 'is-yellow-highlight' };
     }
-    return { keyword: itemKeyword || 'モータースポーツ', className: '' };
+    return { keyword: '全般', className: 'is-general-highlight' };
   }
-  return { keyword: itemKeyword || 'サッカー', className: '' };
+  return { keyword: '全般', className: 'is-general-highlight' };
 }
 
 function renderList(listId, items) {
@@ -46,7 +46,7 @@ function renderList(listId, items) {
     a.href = item.link;
     a.target = '_blank';
     a.rel = 'noopener';
-    const { keyword, className } = getKeywordInfo(listId, item.title, item.searchKeyword);
+    const { keyword, className } = getKeywordInfo(listId, item.title);
     a.className = `yahoo-news-link${className ? ` ${className}` : ''}`;
     const summary = item.summary || item.title;
     const summaryNode = el('span', 'news-summary');

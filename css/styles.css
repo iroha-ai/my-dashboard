@@ -731,6 +731,10 @@ body {
   color: var(--highlight);
 }
 
+.yahoo-news-link.is-general-highlight .news-search-keyword {
+  color: var(--accent);
+}
+
 .yahoo-news-link.is-yellow-highlight {
   color: #fff;
   font-weight: 400;

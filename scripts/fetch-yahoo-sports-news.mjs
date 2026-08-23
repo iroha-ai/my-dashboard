@@ -140,8 +140,8 @@ async function main() {
   const payload = {
     updatedAt: new Date().toISOString(),
     // 既存のdashboard JSON互換のため、サッカー欄もsportsキーで保存する。
-    sports: addSearchKeywords(soccer, 'サッカー', MARINOS_KEYWORDS),
-    motorsports: addSearchKeywords(motorsports, 'モータースポーツ', MOTORSPORTS_YELLOW_KEYWORDS),
+    sports: addSearchKeywords(soccer, '全般', MARINOS_KEYWORDS),
+    motorsports: addSearchKeywords(motorsports, '全般', MOTORSPORTS_YELLOW_KEYWORDS),
   };
   process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 }
