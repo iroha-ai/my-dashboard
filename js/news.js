@@ -52,7 +52,8 @@ function renderHeadlineList(items) {
     a.className = item.unverified
       ? 'yahoo-news-link news-headline-link is-unverified'
       : 'yahoo-news-link news-headline-link';
-    a.textContent = item.title;
+    const searchKeyword = item.searchKeyword || item.matchedKeyword || item.matched_keyword;
+    a.textContent = searchKeyword ? `【${searchKeyword}】${item.title}` : item.title;
     const metadata = [item.source, formatHeadlineDate(item.publishedAt)].filter(Boolean).join(' ・ ');
     if (metadata) a.title = metadata;
     li.appendChild(a);

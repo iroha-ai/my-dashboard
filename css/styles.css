@@ -709,7 +709,11 @@ body {
 }
 
 .news-headline-link.is-unverified {
-  color: #b45309;
+  color: #fff;
+}
+
+.news-headline-link {
+  color: #fff;
 }
 
 /* 定時ニュースダイジェスト（Gmail）へのリンク一覧。メール1通＝1行。
