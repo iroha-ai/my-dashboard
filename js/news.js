@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260823-news-keyword-blue-normal';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-keyword-blue-normal';
+import { CONFIG } from './config.js?v=20260823-news-digest-keyword-blue';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-digest-keyword-blue';
 
 // 2026-08-23以降の現行経路。automation-2 が data ブランチへ差し替える
 // 見出しJSONを読み、Yahoo!ニュース欄と同じく2行相当の要約を直接表示する。
@@ -56,7 +56,7 @@ function renderHeadlineList(items) {
     const summary = item.summary || item.title;
     const summaryNode = el('span', 'news-summary');
     if (searchKeyword) {
-      summaryNode.appendChild(el('span', 'news-search-keyword', `【${searchKeyword}】`));
+      summaryNode.appendChild(el('span', 'news-search-keyword news-search-keyword--digest', `【${searchKeyword}】`));
     }
     summaryNode.appendChild(document.createTextNode(summary));
     a.appendChild(summaryNode);

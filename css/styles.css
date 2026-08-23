@@ -712,6 +712,10 @@ body {
   font-weight: 400;
 }
 
+.news-search-keyword--digest {
+  color: var(--accent);
+}
+
 .yahoo-news-link:hover {
   text-decoration: underline;
 }

@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260823-news-category-label-colors';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-category-label-colors';
+import { CONFIG } from './config.js?v=20260823-news-digest-keyword-blue';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-digest-keyword-blue';
 
 // Yahoo!ニュースの2行要約一覧（サッカー／モータースポーツ）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する
