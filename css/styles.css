@@ -1188,3 +1188,50 @@ body {
     max-width: 100%;
   }
 }
+
+
+/* ---------- スマホのサッカー／モータースポーツ枠（2026-08-24） ---------- */
+@media (max-width: 600px) {
+  .news-split-col-yahoo {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    gap: 10px;
+  }
+
+  .news-split-col-yahoo .yahoo-news-block {
+    display: flex;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 10px;
+    border: 1px solid var(--panel-edge);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .news-split-col-yahoo .block-subtitle {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  .news-split-col-yahoo .yahoo-news-list {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .news-split-col-yahoo .yahoo-news-item,
+  .news-split-col-yahoo .yahoo-news-link,
+  .news-split-col-yahoo .news-summary {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
