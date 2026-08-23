@@ -1,8 +1,8 @@
-import { CONFIG } from './config.js?v=20260823-news-white-f1-purple';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-white-f1-purple';
+import { CONFIG } from './config.js?v=20260823-news-two-line-summary';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-two-line-summary';
 
 // 2026-08-23以降の現行経路。automation-2 が data ブランチへ差し替える
-// 見出しJSONを読み、Yahoo!ニュース欄と同じく記事見出しを直接表示する。
+// 見出しJSONを読み、Yahoo!ニュース欄と同じく2行相当の要約を直接表示する。
 const NEWS_HEADLINE_MAX_ITEMS = 30;
 
 function formatHeadlineDate(value) {
@@ -53,7 +53,10 @@ function renderHeadlineList(items) {
       ? 'yahoo-news-link news-headline-link is-unverified'
       : 'yahoo-news-link news-headline-link';
     const searchKeyword = item.searchKeyword || item.matchedKeyword || item.matched_keyword;
-    a.textContent = searchKeyword ? `【${searchKeyword}】${item.title}` : item.title;
+    const summary = item.summary || item.title;
+    const label = searchKeyword ? `【${searchKeyword}】` : '';
+    const summaryNode = el('span', 'news-summary', `${label}${summary}`);
+    a.appendChild(summaryNode);
     const metadata = [item.source, formatHeadlineDate(item.publishedAt)].filter(Boolean).join(' ・ ');
     if (metadata) a.title = metadata;
     li.appendChild(a);

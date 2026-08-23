@@ -47,6 +47,13 @@ function unwrapCdata(text) {
   return m ? m[1] : text;
 }
 
+function cleanSummary(text) {
+  return decodeEntities(unwrapCdata(text))
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // motorsport.com 日本版のタイトル末尾に付く配信元表記
 // 「…(motorsport.com 日本版)」を取り除く。他フィードでは該当しないので無害。
 function stripSourceSuffix(title) {
@@ -64,11 +71,13 @@ function parseItems(xml, { stripSuffix = false } = {}) {
     const block = m[1];
     const titleRaw = block.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? '';
     const linkRaw = block.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? '';
+    const descriptionRaw = block.match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? '';
     let title = decodeEntities(unwrapCdata(titleRaw)).trim();
     const link = decodeEntities(unwrapCdata(linkRaw)).trim();
     if (!title || !link) continue;
     if (stripSuffix) title = stripSourceSuffix(title);
-    items.push({ title, link });
+    const summary = cleanSummary(descriptionRaw) || title;
+    items.push({ title, summary, link });
   }
   return items;
 }

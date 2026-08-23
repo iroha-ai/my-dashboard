@@ -681,7 +681,7 @@ body {
 }
 
 .yahoo-news-item {
-  padding: 5px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--panel-edge);
 }
 
@@ -695,6 +695,15 @@ body {
   color: #fff;
   text-decoration: none;
   line-height: 1.4;
+}
+
+.news-summary {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.45;
+  min-height: calc(1.45em * 2);
 }
 
 .yahoo-news-link:hover {
