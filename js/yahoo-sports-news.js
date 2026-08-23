@@ -1,7 +1,7 @@
-import { CONFIG } from './config.js?v=20260823-news-two-line-summary';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-two-line-summary';
+import { CONFIG } from './config.js?v=20260823-news-yahoo-title';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-yahoo-title';
 
-// Yahoo!ニュースの要約一覧（スポーツ総合／モータースポーツ）。
+// Yahoo!ニュースの見出し一覧（スポーツ総合／モータースポーツ）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する
 // （2026-08-20、Hideの依頼で追加。index.html の .news-split 参照）。
 //
@@ -36,8 +36,7 @@ function renderList(listId, items) {
     a.className = isHighlighted(item.title)
       ? 'yahoo-news-link is-highlight'
       : 'yahoo-news-link';
-    const summary = item.summary || item.title;
-    a.appendChild(el('span', 'news-summary', summary));
+    a.textContent = item.title;
     li.appendChild(a);
     list.appendChild(li);
   }
