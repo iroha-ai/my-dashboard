@@ -1,4 +1,4 @@
-import { pad2, weekdayLabel } from './util.js?v=20260824-x-notifications-private';
+import { pad2, weekdayLabel } from './util.js?v=20260825-x-drive-api-fix';
 
 export function startClock() {
   const timeNode = document.getElementById('clock-time');

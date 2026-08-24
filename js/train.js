@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260824-x-notifications-private';
-import { fetchJson } from './util.js?v=20260824-x-notifications-private';
+import { CONFIG } from './config.js?v=20260825-x-drive-api-fix';
+import { fetchJson } from './util.js?v=20260825-x-drive-api-fix';
 
 // 運行情報。詳しい文言は出さず、該当路線のリンクの色を変えるだけにしている
 // （Hideの要望: 「アラートを受信したら、リンクの色を変えるだけでいい。

@@ -47,7 +47,11 @@ globalThis.document = {
   })[id] || null,
 };
 
-const { normalizeXNotifications, renderXNotifications } =
+const {
+  classifyXNotificationError,
+  normalizeXNotifications,
+  renderXNotifications,
+} =
   await import('../js/x-notifications.js');
 
 const items = normalizeXNotifications({
@@ -108,5 +112,20 @@ assert.match(list.children[0].textContent, /【ポスト】@newer：新しい通
 renderXNotifications({ status: 'awaiting_first_sync', items: [] });
 assert.equal(list.children.length, 1);
 assert.match(list.textContent, /初回同期/);
+
+const disabledApiError = Object.assign(
+  new Error('Google Drive API has not been used in project 780678067574 before or it is disabled.'),
+  { status: 403, reason: 'SERVICE_DISABLED' }
+);
+const disabledApiFailure = classifyXNotificationError(disabledApiError);
+assert.equal(disabledApiFailure.enableDriveApi, true);
+assert.equal(disabledApiFailure.canReconnect, false);
+assert.match(disabledApiFailure.message, /Drive APIが無効/);
+
+const authFailure = classifyXNotificationError(
+  Object.assign(new Error('access_denied'), { authError: 'access_denied' })
+);
+assert.equal(authFailure.canReconnect, true);
+assert.match(authFailure.message, /Googleへの接続/);
 
 console.log('X通知の正規化・表示テスト: OK');

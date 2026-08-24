@@ -3,7 +3,7 @@
 // 新しく足したキー（transitKeywords 等）が undefined になって
 // `Cannot read properties of undefined (reading 'some')` で落ちる（2026-08-13に実際に発生）。
 // 加えて、同じファイルをクエリ有り・無しで読むと別モジュールとして二重に評価される。
-import { CONFIG } from './config.js?v=20260824-x-notifications-private';
+import { CONFIG } from './config.js?v=20260825-x-drive-api-fix';
 import {
   addDays,
   clear,
@@ -13,12 +13,12 @@ import {
   showMessage,
   startOfDay,
   weekdayLabel,
-} from './util.js?v=20260824-x-notifications-private';
+} from './util.js?v=20260825-x-drive-api-fix';
 import {
   renderTasks,
   showTasksMessage,
   updateTasks,
-} from './tasks.js?v=20260824-x-notifications-private';
+} from './tasks.js?v=20260825-x-drive-api-fix';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 // タスク欄に加え、本人限定のX通知JSONを読むためdrive.fileを要求する。
 // drive.fileは、このダッシュボード自身が作成したファイルだけにアクセスできる。
@@ -124,7 +124,6 @@ export async function getGoogleAccessToken({ interactive = false, force = false 
   if (tokenRequest) return tokenRequest;
 
   if (!tokenClient) {
-    await loadScript(GIS_SRC);
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CONFIG.googleClientId,
       scope: SCOPE,
@@ -139,7 +138,9 @@ export async function getGoogleAccessToken({ interactive = false, force = false 
   tokenRequest = new Promise((resolve, reject) => {
     tokenClient.callback = (response) => {
       if (response.error) {
-        reject(new Error(response.error));
+        const error = new Error(response.error_description || response.error);
+        error.authError = response.error;
+        reject(error);
         return;
       }
       accessToken = response.access_token;
@@ -147,7 +148,11 @@ export async function getGoogleAccessToken({ interactive = false, force = false 
       saveTokenToStorage();
       resolve(accessToken);
     };
-    tokenClient.error_callback = (err) => reject(new Error(err?.type || 'auth_failed'));
+    tokenClient.error_callback = (err) => {
+      const error = new Error(err?.message || err?.type || 'auth_failed');
+      error.authError = err?.type || 'auth_failed';
+      reject(error);
+    };
     tokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
   });
   try {
@@ -377,7 +382,7 @@ export async function updateCalendar(onStatus) {
   if (new URLSearchParams(location.search).get('demo') === '1') {
     try {
       const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import(
-        './demo-events.js?v=20260824-x-notifications-private'
+        './demo-events.js?v=20260825-x-drive-api-fix'
       );
       renderAll(DEMO_EVENTS());
       renderTasks(DEMO_TASKS());

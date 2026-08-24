@@ -797,6 +797,22 @@ body {
   text-decoration: underline;
 }
 
+.x-notification-help-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-weight: 400;
+}
+
+.x-notification-error-detail {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
 .news-headline-link.is-unverified {
   color: #fff;
 }

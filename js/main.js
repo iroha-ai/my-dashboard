@@ -1,14 +1,14 @@
 // ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
-import { CONFIG } from './config.js?v=20260824-x-notifications-private';
-import { startClock } from './clock.js?v=20260824-x-notifications-private';
-import { updateCalendar } from './calendar.js?v=20260824-x-notifications-private';
-import { updateTrain } from './train.js?v=20260824-x-notifications-private';
-import { updateWeather } from './weather.js?v=20260824-x-notifications-private';
-import { updateNewsDigest } from './news.js?v=20260824-x-notifications-private';
-import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260824-x-notifications-private';
-import { updateXNotifications } from './x-notifications.js?v=20260824-x-notifications-private';
-import { clear, el, runPeriodically } from './util.js?v=20260824-x-notifications-private';
+import { CONFIG } from './config.js?v=20260825-x-drive-api-fix';
+import { startClock } from './clock.js?v=20260825-x-drive-api-fix';
+import { updateCalendar } from './calendar.js?v=20260825-x-drive-api-fix';
+import { updateTrain } from './train.js?v=20260825-x-drive-api-fix';
+import { updateWeather } from './weather.js?v=20260825-x-drive-api-fix';
+import { updateNewsDigest } from './news.js?v=20260825-x-drive-api-fix';
+import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260825-x-drive-api-fix';
+import { updateXNotifications } from './x-notifications.js?v=20260825-x-drive-api-fix';
+import { clear, el, runPeriodically } from './util.js?v=20260825-x-drive-api-fix';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。
@@ -47,15 +47,15 @@ function renderStatus() {
       el('span', entry.isError ? 'status-error' : '', entry.message)
     );
     if (entry.action) {
-      const button = el('button', 'status-action', '接続する');
+      const button = el('button', 'status-action', entry.actionLabel || '接続する');
       button.addEventListener('click', () => entry.action());
       strip.appendChild(button);
     }
   }
 }
 
-function setStatus(key, message, isError, action = null) {
-  statuses.set(key, { message, isError, action });
+function setStatus(key, message, isError, action = null, actionLabel = '接続する') {
+  statuses.set(key, { message, isError, action, actionLabel });
   renderStatus();
 }
 
@@ -74,8 +74,8 @@ const FAILURE_LABELS = {
 // （2026-08-13追加。取れていないことに気づけないのが一番まずいため）。
 async function updateAndStamp(key, update) {
   let completed = false;
-  const trackStatus = (statusKey, message, isError, action = null) => {
-    setStatus(statusKey, message, isError, action);
+  const trackStatus = (statusKey, message, isError, action = null, actionLabel = '接続する') => {
+    setStatus(statusKey, message, isError, action, actionLabel);
     if (statusKey === key) completed = !isError;
   };
 

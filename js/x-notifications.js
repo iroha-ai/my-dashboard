@@ -1,12 +1,17 @@
-import { CONFIG } from './config.js?v=20260824-x-notifications-private';
+import { CONFIG } from './config.js?v=20260825-x-drive-api-fix';
 import {
   getGoogleAccessToken,
   resetGoogleAccessToken,
-} from './calendar.js?v=20260824-x-notifications-private';
-import { clear, el, showMessage } from './util.js?v=20260824-x-notifications-private';
+} from './calendar.js?v=20260825-x-drive-api-fix';
+import { clear, el, showMessage } from './util.js?v=20260825-x-drive-api-fix';
 
 const MAX_ITEMS = 8;
 const FILE_ID_STORAGE_KEY = 'my-dashboard:x-notifications-drive-file-id';
+const GOOGLE_CLOUD_PROJECT_NUMBER = CONFIG.googleClientId.split('-')[0];
+const DRIVE_API_ENABLE_URL =
+  `https://console.cloud.google.com/apis/library/drive.googleapis.com?project=${encodeURIComponent(
+    GOOGLE_CLOUD_PROJECT_NUMBER
+  )}`;
 const TYPE_LABELS = {
   post: 'ポスト',
   mention: 'メンション',
@@ -19,6 +24,78 @@ const TYPE_LABELS = {
 
 function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+async function makeDriveApiError(response, label) {
+  let payload = null;
+  try {
+    payload = await response.clone().json();
+  } catch {
+    // JSONでないエラー応答も、HTTPステータスだけで判定できるようにする。
+  }
+  const detail = cleanText(payload?.error?.message);
+  const reason = payload?.error?.details
+    ?.map((item) => item?.reason || item?.metadata?.reason)
+    .find(Boolean);
+  const error = new Error(detail ? `${label} (${response.status}): ${detail}` : `${label} (${response.status})`);
+  error.status = response.status;
+  error.reason = reason || payload?.error?.status || '';
+  return error;
+}
+
+function isDriveApiDisabled(error) {
+  return (
+    error?.reason === 'SERVICE_DISABLED' ||
+    /drive api.*(?:has not been used|disabled)|service_disabled|accessnotconfigured/i.test(
+      error?.message || ''
+    )
+  );
+}
+
+export function classifyXNotificationError(error) {
+  const technicalDetail = cleanText(error?.message).slice(0, 220);
+  if (isDriveApiDisabled(error)) {
+    return {
+      message: 'Google Drive APIが無効です。下のリンクから有効化してください。',
+      statusMessage: 'X通知：Google Drive APIの有効化が必要',
+      technicalDetail,
+      enableDriveApi: true,
+      canReconnect: false,
+    };
+  }
+
+  const authFailure =
+    error?.status === 401 ||
+    /auth|popup|token|access_denied|interaction_required/i.test(
+      `${error?.authError || ''} ${error?.message || ''}`
+    );
+  if (authFailure) {
+    return {
+      message: 'Googleへの接続が完了していません。もう一度接続してください。',
+      statusMessage: 'X通知はGoogle再接続が必要',
+      technicalDetail,
+      enableDriveApi: false,
+      canReconnect: true,
+    };
+  }
+
+  if (error?.status === 403) {
+    return {
+      message: 'Google Driveの利用権限が許可されていません。',
+      statusMessage: 'X通知：Drive権限の許可が必要',
+      technicalDetail,
+      enableDriveApi: false,
+      canReconnect: true,
+    };
+  }
+
+  return {
+    message: 'X通知を取得できませんでした。',
+    statusMessage: `X通知の更新に失敗${error?.status ? `（${error.status}）` : ''}`,
+    technicalDetail,
+    enableDriveApi: false,
+    canReconnect: false,
+  };
 }
 
 function safeXUrl(value) {
@@ -133,6 +210,28 @@ export function renderXNotifications(payload) {
   }
 }
 
+function renderXNotificationFailure(failure) {
+  const list = document.getElementById('x-notification-list');
+  if (!list) return;
+  clear(list);
+
+  const message = el('div', 'load-error', failure.message);
+  if (failure.enableDriveApi) {
+    const link = el('a', 'x-notification-help-link', 'Google Drive APIを有効化');
+    link.href = DRIVE_API_ENABLE_URL;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    message.appendChild(document.createElement('br'));
+    message.appendChild(link);
+  }
+  if (failure.technicalDetail) {
+    message.appendChild(
+      el('span', 'x-notification-error-detail', `詳細：${failure.technicalDetail}`)
+    );
+  }
+  list.appendChild(message);
+}
+
 function storedFileId() {
   try {
     return localStorage.getItem(FILE_ID_STORAGE_KEY) || '';
@@ -164,9 +263,7 @@ async function fetchPrivateNotifications(token, fileId) {
     cache: 'no-store',
   });
   if (!response.ok) {
-    const error = new Error(`X通知の取得に失敗 (${response.status})`);
-    error.status = response.status;
-    throw error;
+    throw await makeDriveApiError(response, 'X通知の取得に失敗');
   }
   return response.json();
 }
@@ -187,9 +284,7 @@ async function findPrivateNotificationFile(token) {
     cache: 'no-store',
   });
   if (!response.ok) {
-    const error = new Error(`X通知ファイルの検索に失敗 (${response.status})`);
-    error.status = response.status;
-    throw error;
+    throw await makeDriveApiError(response, 'X通知ファイルの検索に失敗');
   }
   const data = await response.json();
   return data.files?.[0]?.id || '';
@@ -210,9 +305,7 @@ async function createPrivateNotificationFile(token) {
     }),
   });
   if (!response.ok) {
-    const error = new Error(`X通知ファイルの作成に失敗 (${response.status})`);
-    error.status = response.status;
-    throw error;
+    throw await makeDriveApiError(response, 'X通知ファイルの作成に失敗');
   }
   const file = await response.json();
   const initialPayload = {
@@ -233,9 +326,7 @@ async function createPrivateNotificationFile(token) {
     }
   );
   if (!upload.ok) {
-    const error = new Error(`X通知ファイルの初期化に失敗 (${upload.status})`);
-    error.status = upload.status;
-    throw error;
+    throw await makeDriveApiError(upload, 'X通知ファイルの初期化に失敗');
   }
   return file.id;
 }
@@ -291,6 +382,31 @@ function demoPayload() {
   };
 }
 
+function handleXNotificationFailure(error, onStatus) {
+  console.error('X通知の取得に失敗', error);
+  const failure = classifyXNotificationError(error);
+  renderXNotificationFailure(failure);
+  const reconnect = failure.canReconnect
+    ? () => reconnectXNotifications(onStatus)
+    : null;
+  onStatus?.(
+    'xNotifications',
+    failure.statusMessage,
+    true,
+    reconnect,
+    'Google接続'
+  );
+}
+
+async function reconnectXNotifications(onStatus) {
+  try {
+    resetGoogleAccessToken();
+    await refreshNotifications(onStatus, { interactive: true });
+  } catch (error) {
+    handleXNotificationFailure(error, onStatus);
+  }
+}
+
 export async function updateXNotifications(onStatus) {
   if (new URLSearchParams(location.search).get('demo') === '1') {
     renderXNotifications(demoPayload());
@@ -300,32 +416,7 @@ export async function updateXNotifications(onStatus) {
 
   try {
     await refreshNotifications(onStatus);
-  } catch (err) {
-    console.error('X通知の取得に失敗', err);
-    const list = document.getElementById('x-notification-list');
-    const needsReconnect = err?.status === 401 || err?.status === 403 || /auth|popup|token/i.test(err?.message || '');
-    const reconnect = needsReconnect
-      ? async () => {
-          try {
-            resetGoogleAccessToken();
-            await refreshNotifications(onStatus, { interactive: true });
-          } catch (retryErr) {
-            console.error('X通知への再接続に失敗', retryErr);
-            showMessage(list, 'X通知の非公開データへ接続できません', true);
-            onStatus?.('xNotifications', 'X通知への接続に失敗', true, reconnect);
-          }
-        }
-      : null;
-    showMessage(
-      list,
-      needsReconnect ? 'Googleへ再接続するとX通知を表示できます' : 'X通知を取得できませんでした',
-      true
-    );
-    onStatus?.(
-      'xNotifications',
-      needsReconnect ? 'X通知はGoogle再接続が必要' : 'X通知の更新に失敗',
-      true,
-      reconnect
-    );
+  } catch (error) {
+    handleXNotificationFailure(error, onStatus);
   }
 }
