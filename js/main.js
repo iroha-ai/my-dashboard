@@ -1,13 +1,13 @@
 // ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
-import { CONFIG } from './config.js?v=20260823-news-general-label';
-import { startClock } from './clock.js?v=20260823-news-general-label';
-import { updateCalendar } from './calendar.js?v=20260823-news-general-label';
-import { updateTrain } from './train.js?v=20260823-news-general-label';
-import { updateWeather } from './weather.js?v=20260823-news-general-label';
-import { updateNewsDigest } from './news.js?v=20260823-news-general-label';
-import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260823-news-general-label';
-import { clear, el, runPeriodically } from './util.js?v=20260823-news-general-label';
+import { CONFIG } from './config.js?v=20260824-news-summary-keyword';
+import { startClock } from './clock.js?v=20260824-news-summary-keyword';
+import { updateCalendar } from './calendar.js?v=20260824-news-summary-keyword';
+import { updateTrain } from './train.js?v=20260824-news-summary-keyword';
+import { updateWeather } from './weather.js?v=20260824-news-summary-keyword';
+import { updateNewsDigest } from './news.js?v=20260824-news-summary-keyword';
+import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260824-news-summary-keyword';
+import { clear, el, runPeriodically } from './util.js?v=20260824-news-summary-keyword';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。

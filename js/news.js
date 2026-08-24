@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260823-news-general-label';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-general-label';
+import { CONFIG } from './config.js?v=20260824-news-summary-keyword';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260824-news-summary-keyword';
 
 // 2026-08-23以降の現行経路。automation-2 が data ブランチへ差し替える
 // 見出しJSONを読み、Yahoo!ニュース欄と同じく2行相当の要約を直接表示する。
@@ -52,7 +52,7 @@ function renderHeadlineList(items) {
     a.className = item.unverified
       ? 'yahoo-news-link news-headline-link is-unverified'
       : 'yahoo-news-link news-headline-link';
-    const searchKeyword = item.searchKeyword || item.matchedKeyword || item.matched_keyword;
+    const searchKeyword = item.searchKeyword || item.matchedKeyword || item.matched_keyword || '全般';
     const summary = item.summary || item.title;
     const summaryNode = el('span', 'news-summary');
     if (searchKeyword) {
