@@ -1,7 +1,7 @@
-import { CONFIG } from './config.js?v=20260823-news-general-label';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260823-news-general-label';
+import { CONFIG } from './config.js?v=20260824-x-notifications-private';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260824-x-notifications-private';
 
-// Yahoo!ニュースの2行要約一覧（サッカー／モータースポーツ）。
+// Yahoo!ニュースの2行要約一覧（サッカー）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する
 // （2026-08-20、Hideの依頼で追加。index.html の .news-split 参照）。
 //
@@ -15,17 +15,10 @@ function findKeyword(keywords, title) {
   return keywords.find((kw) => title.includes(kw)) || '';
 }
 
-function getKeywordInfo(listId, title) {
+function getKeywordInfo(title) {
   const marinosKeyword = findKeyword(CONFIG.yahooNewsMarinosKeywords, title);
   if (marinosKeyword) {
     return { keyword: marinosKeyword, className: 'is-purple-highlight' };
-  }
-  if (listId === 'yahoo-motorsports-list') {
-    const yellowKeyword = findKeyword(CONFIG.yahooMotorsportsYellowKeywords, title);
-    if (yellowKeyword) {
-      return { keyword: yellowKeyword, className: 'is-yellow-highlight' };
-    }
-    return { keyword: '全般', className: 'is-general-highlight' };
   }
   return { keyword: '全般', className: 'is-general-highlight' };
 }
@@ -46,7 +39,7 @@ function renderList(listId, items) {
     a.href = item.link;
     a.target = '_blank';
     a.rel = 'noopener';
-    const { keyword, className } = getKeywordInfo(listId, item.title);
+    const { keyword, className } = getKeywordInfo(item.title);
     a.className = `yahoo-news-link${className ? ` ${className}` : ''}`;
     const summary = item.summary || item.title;
     const summaryNode = el('span', 'news-summary');
@@ -62,12 +55,10 @@ export async function updateYahooSportsNews(onStatus) {
   try {
     const data = await fetchJson(`${CONFIG.yahooSportsNewsDataUrl}?t=${Date.now()}`);
     renderList('yahoo-sports-list', data.sports);
-    renderList('yahoo-motorsports-list', data.motorsports);
     onStatus?.('yahooSportsNews', null, false);
   } catch (err) {
-    console.error('Yahoo!ニュース見出しの取得に失敗', err);
+    console.error('サッカーニュース見出しの取得に失敗', err);
     showMessage(document.getElementById('yahoo-sports-list'), '見出しの取得に失敗しました', true);
-    showMessage(document.getElementById('yahoo-motorsports-list'), '見出しの取得に失敗しました', true);
-    onStatus?.('yahooSportsNews', 'Yahoo!ニュースの取得に失敗', true);
+    onStatus?.('yahooSportsNews', 'サッカーニュースの取得に失敗', true);
   }
 }

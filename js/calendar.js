@@ -3,7 +3,7 @@
 // 新しく足したキー（transitKeywords 等）が undefined になって
 // `Cannot read properties of undefined (reading 'some')` で落ちる（2026-08-13に実際に発生）。
 // 加えて、同じファイルをクエリ有り・無しで読むと別モジュールとして二重に評価される。
-import { CONFIG } from './config.js?v=20260823-news-headlines';
+import { CONFIG } from './config.js?v=20260824-x-notifications-private';
 import {
   addDays,
   clear,
@@ -13,31 +13,35 @@ import {
   showMessage,
   startOfDay,
   weekdayLabel,
-} from './util.js?v=20260823-news-headlines';
+} from './util.js?v=20260824-x-notifications-private';
 import {
   renderTasks,
   showTasksMessage,
   updateTasks,
-} from './tasks.js?v=20260823-news-headlines';
+} from './tasks.js?v=20260824-x-notifications-private';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
-// タスク欄も同じ画面に出すため、カレンダーと合わせてtasks.readonlyを要求する。
-// 定時ニュースは2026-08-23から公開JSONを直接読むため、Gmail権限は不要になった。
+// タスク欄に加え、本人限定のX通知JSONを読むためdrive.fileを要求する。
+// drive.fileは、このダッシュボード自身が作成したファイルだけにアクセスできる。
 const SCOPE =
   'https://www.googleapis.com/auth/calendar.readonly ' +
-  'https://www.googleapis.com/auth/tasks.readonly';
+  'https://www.googleapis.com/auth/tasks.readonly ' +
+  'https://www.googleapis.com/auth/drive.file';
 
 let tokenClient = null;
 let accessToken = null;
 let tokenExpiresAt = 0;
 let requestSignIn = null;
+let tokenRequest = null;
+let gisLoadRequest = null;
 
 // トークンをlocalStorageにも持たせる（2026-08-09追加）。
 // これまではJS変数だけに保持していたため、ページを再読み込みするたびに
 // トークンがまだ有効（最長1時間）でも毎回サインインをやり直す必要があった。
 // リロード直後にlocalStorageから復元できれば、有効期限内は「接続する」を
-// 押し直さずに済む。読み取り専用スコープ（calendar/tasks）の
+// 押し直さずに済む。calendar/tasksは読み取り専用、Driveはアプリ作成ファイル限定の
 // 短命トークンなので、常時表示のこの端末向けにはlocalStorage保持で許容している。
-const TOKEN_STORAGE_KEY = 'my-dashboard:google-token';
+// Drive権限追加前のトークンを誤使用しないよう、保存キーを更新する。
+const TOKEN_STORAGE_KEY = 'my-dashboard:google-token:v2-drive-file';
 
 function saveTokenToStorage() {
   try {
@@ -73,6 +77,12 @@ function clearTokenStorage() {
   }
 }
 
+export function resetGoogleAccessToken() {
+  accessToken = null;
+  tokenExpiresAt = 0;
+  clearTokenStorage();
+}
+
 loadTokenFromStorage();
 
 function loadScript(src) {
@@ -86,12 +96,32 @@ function loadScript(src) {
   });
 }
 
+async function ensureGoogleIdentityServices() {
+  if (globalThis.google?.accounts?.oauth2) return;
+  if (!gisLoadRequest) {
+    gisLoadRequest = loadScript(GIS_SRC);
+  }
+  try {
+    await gisLoadRequest;
+  } finally {
+    gisLoadRequest = null;
+  }
+}
+
 // 常時表示なので、期限が切れる前に黙って取り直す。
 // 取り直せないときだけ、画面から手動で繋ぎ直せるようにする。
-async function getAccessToken({ interactive = false } = {}) {
+export async function getGoogleAccessToken({ interactive = false, force = false } = {}) {
+  if (force) resetGoogleAccessToken();
   if (accessToken && Date.now() < tokenExpiresAt - 60_000) {
     return accessToken;
   }
+
+  if (tokenRequest) return tokenRequest;
+
+  await ensureGoogleIdentityServices();
+  // カレンダーとX通知は初回に並行実行される。スクリプト読込中にもう一方が
+  // 認証を開始していた場合は、同じ要求へ合流してポップアップを重ねない。
+  if (tokenRequest) return tokenRequest;
 
   if (!tokenClient) {
     await loadScript(GIS_SRC);
@@ -106,7 +136,7 @@ async function getAccessToken({ interactive = false } = {}) {
     });
   }
 
-  return new Promise((resolve, reject) => {
+  tokenRequest = new Promise((resolve, reject) => {
     tokenClient.callback = (response) => {
       if (response.error) {
         reject(new Error(response.error));
@@ -120,6 +150,11 @@ async function getAccessToken({ interactive = false } = {}) {
     tokenClient.error_callback = (err) => reject(new Error(err?.type || 'auth_failed'));
     tokenClient.requestAccessToken({ prompt: interactive ? 'consent' : '' });
   });
+  try {
+    return await tokenRequest;
+  } finally {
+    tokenRequest = null;
+  }
 }
 
 async function fetchEvents(token, timeMin, timeMax) {
@@ -342,7 +377,7 @@ export async function updateCalendar(onStatus) {
   if (new URLSearchParams(location.search).get('demo') === '1') {
     try {
       const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import(
-        './demo-events.js?v=20260823-news-headlines'
+        './demo-events.js?v=20260824-x-notifications-private'
       );
       renderAll(DEMO_EVENTS());
       renderTasks(DEMO_TASKS());
@@ -367,20 +402,19 @@ export async function updateCalendar(onStatus) {
   const to = addDays(from, CONFIG.weekDays + 1);
 
   try {
-    const token = await getAccessToken();
+    const token = await getGoogleAccessToken();
     renderAll(await fetchEvents(token, from, to));
     onStatus?.('calendar', null, false);
     requestSignIn = null;
     await updateTasks(token, onStatus);
   } catch (err) {
     console.error('カレンダーの取得に失敗', err);
-    accessToken = null;
-    clearTokenStorage();
+    resetGoogleAccessToken();
 
     // 黙って取り直せなかったときは、押せば繋ぎ直せる状態にしておく。
     requestSignIn = async () => {
       try {
-        const token = await getAccessToken({ interactive: true });
+        const token = await getGoogleAccessToken({ interactive: true, force: true });
         renderAll(await fetchEvents(token, from, to));
         onStatus?.('calendar', null, false);
         requestSignIn = null;

@@ -1,4 +1,4 @@
-import { pad2, weekdayLabel } from './util.js?v=20260823-news-headlines';
+import { pad2, weekdayLabel } from './util.js?v=20260824-x-notifications-private';
 
 export function startClock() {
   const timeNode = document.getElementById('clock-time');

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Dashboard</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="css/styles.css?v=20260824-mobile-news-box-fix">
+<link rel="stylesheet" href="css/styles.css?v=20260824-x-notifications-private">
 </head>
 <body>
 
@@ -94,8 +94,8 @@
     </section>
 
     <!-- 定時ニュース欄。左＝automation-2の検索結果を直接表示する見出し一覧、
-         右＝Yahoo!ニュースの2行要約一覧（サッカー／モータースポーツ）を横に二分割
-         （2026-08-20、Hideの依頼で右側を追加。js/yahoo-sports-news.js参照）。
+         右＝Yahoo!サッカーの2行要約と本人限定のX通知アラートを横に二分割
+         （X通知はGoogle Driveのアプリ専用ファイルから認証後に読む）。
          左位置は今日の予定の列に揃えている（.center参照）。 -->
     <section class="panel week-calendar">
       <div class="news-split">
@@ -118,8 +118,11 @@
             </ul>
           </div>
           <div class="yahoo-news-block">
-            <h3 class="block-subtitle">モータースポーツ</h3>
-            <ul id="yahoo-motorsports-list" class="yahoo-news-list">
+            <h3 class="block-subtitle x-notification-heading">
+              X：通知アラート
+              <span id="x-notification-status" class="x-notification-status" aria-live="polite"></span>
+            </h3>
+            <ul id="x-notification-list" class="x-notification-list">
               <li class="placeholder">読み込み中</li>
             </ul>
           </div>
@@ -194,6 +197,6 @@
 
 </main>
 
-<script type="module" src="js/main.js?v=20260824-news-summary-keyword"></script>
+<script type="module" src="js/main.js?v=20260824-x-notifications-private"></script>
 </body>
 </html>

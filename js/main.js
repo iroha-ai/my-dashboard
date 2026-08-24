@@ -1,13 +1,14 @@
 // ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
-import { CONFIG } from './config.js?v=20260824-news-summary-keyword';
-import { startClock } from './clock.js?v=20260824-news-summary-keyword';
-import { updateCalendar } from './calendar.js?v=20260824-news-summary-keyword';
-import { updateTrain } from './train.js?v=20260824-news-summary-keyword';
-import { updateWeather } from './weather.js?v=20260824-news-summary-keyword';
-import { updateNewsDigest } from './news.js?v=20260824-news-summary-keyword';
-import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260824-news-summary-keyword';
-import { clear, el, runPeriodically } from './util.js?v=20260824-news-summary-keyword';
+import { CONFIG } from './config.js?v=20260824-x-notifications-private';
+import { startClock } from './clock.js?v=20260824-x-notifications-private';
+import { updateCalendar } from './calendar.js?v=20260824-x-notifications-private';
+import { updateTrain } from './train.js?v=20260824-x-notifications-private';
+import { updateWeather } from './weather.js?v=20260824-x-notifications-private';
+import { updateNewsDigest } from './news.js?v=20260824-x-notifications-private';
+import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260824-x-notifications-private';
+import { updateXNotifications } from './x-notifications.js?v=20260824-x-notifications-private';
+import { clear, el, runPeriodically } from './util.js?v=20260824-x-notifications-private';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。
@@ -28,7 +29,7 @@ function renderUpdatedAt() {
 
   const time = (key) => updatedAt.has(key) ? formatTime(updatedAt.get(key)) : '--:--';
   node.textContent =
-    `更新　予定等 ${time('calendar')}｜天気 ${time('weather')}｜運行 ${time('train')}｜ニュース ${time('news')}`;
+    `更新　予定等 ${time('calendar')}｜天気 ${time('weather')}｜運行 ${time('train')}｜ニュース ${time('news')}｜X ${time('xNotifications')}`;
 }
 
 function markUpdated(key) {
@@ -63,7 +64,8 @@ const FAILURE_LABELS = {
   weather: '天気の更新に失敗',
   train: '運行情報の更新に失敗',
   news: '定時ニュースの更新に失敗',
-  yahooSportsNews: 'Yahoo!ニュースの更新に失敗',
+  yahooSportsNews: 'サッカーニュースの更新に失敗',
+  xNotifications: 'X通知の更新に失敗',
 };
 
 // runPeriodically は例外を console.error するだけなので、想定外の例外が出ると
@@ -109,3 +111,7 @@ runPeriodically(async () => {
 runPeriodically(async () => {
   await updateAndStamp('yahooSportsNews', updateYahooSportsNews);
 }, CONFIG.intervals.yahooSportsNews);
+
+runPeriodically(async () => {
+  await updateAndStamp('xNotifications', updateXNotifications);
+}, CONFIG.intervals.xNotifications);

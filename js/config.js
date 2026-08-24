@@ -24,22 +24,25 @@ export const CONFIG = {
   trainMailDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/train-mail.json',
 
-  // Yahoo!ニュース見出しJSONの取得先。train.jsonと同じ data ブランチ・raw経由
+  // Yahoo!サッカーニュースJSONの取得先。train.jsonと同じ data ブランチ・raw経由
   // （Yahoo側のRSSにCORSが無くブラウザから直接fetchできないため、
   // scripts/fetch-yahoo-sports-news.mjs がGitHub Actionsで定期取得して書く。
   // 2026-08-20、Hideの依頼で「定時ニュース」欄の右側に追加）。
   yahooSportsNewsDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/yahoo-sports-news.json',
 
+  // X通知アラートは公開dataブランチへ置かない。Google接続後、この名称のJSONを
+  // drive.file権限で検索し、無ければダッシュボード自身が本人のDriveへ作成する。
+  // drive.fileでは、このアプリが作成したファイル以外のDriveデータは読めない。
+  xNotificationsDriveFileName: 'x-notification-alerts.json',
+
   // automation-2 が毎日7:00・12:00・16:00に差し替える定時ニュース見出し。
   // Gmailを介さず、Yahoo!ニュース見出しと同じdataブランチ経路で読む。
   newsHeadlinesDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/news-headlines.json',
 
-  // Yahoo!ニュースの色分け。横浜F・マリノスは紫、モータースポーツの
-  // 指定キーワードは黄色で表示する（2026-08-23、Hideの指定）。
+  // Yahoo!サッカーの色分け。横浜F・マリノスは紫で表示する。
   yahooNewsMarinosKeywords: ['マリノス', '横浜FM', '横浜ＦＭ', '横浜F・マリノス', '横浜Ｆ・マリノス'],
-  yahooMotorsportsYellowKeywords: ['角田', 'ホンダ', 'ＨＯＮＤＡ', 'Honda', 'HONDA', 'アストンマーティン', 'アストンマーチン', 'Aston Martin', 'アロンソ'],
 
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。
@@ -81,6 +84,7 @@ export const CONFIG = {
     train: 5 * 60 * 1000,
     newsHeadlines: 5 * 60 * 1000,
     yahooSportsNews: 20 * 60 * 1000,
+    xNotifications: 5 * 60 * 1000,
   },
 
   // 来客・外出として拾うタイトルのキーワード（部分一致）。

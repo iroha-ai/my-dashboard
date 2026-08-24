@@ -650,9 +650,7 @@ body {
   border-right: 1px solid var(--panel-edge);
 }
 
-/* 右側（Yahoo!ニュース）はサッカー／モータースポーツの2段構成
-   （1本のリストに混ぜると件数の少ないモータースポーツが埋もれるため、
-   2026-08-20、Hideの指定で分けた）。 */
+/* 右側は公開のサッカー欄と、本人限定のX通知アラートの2段構成。 */
 .news-split-col-yahoo {
   gap: 10px;
 }
@@ -720,8 +718,7 @@ body {
   text-decoration: underline;
 }
 
-/* 横浜F・マリノス関連は紫、指定されたモータースポーツ語は黄色。
-   js/yahoo-sports-news.js のキーワードラベルに適用する。 */
+/* 横浜F・マリノス関連は紫。js/yahoo-sports-news.js のラベルに適用する。 */
 .yahoo-news-link.is-purple-highlight {
   color: #fff;
   font-weight: 400;
@@ -735,13 +732,69 @@ body {
   color: var(--accent);
 }
 
-.yahoo-news-link.is-yellow-highlight {
-  color: #fff;
-  font-weight: 400;
+.x-notification-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.yahoo-news-link.is-yellow-highlight .news-search-keyword {
-  color: var(--caution);
+.x-notification-status {
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.x-notification-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.x-notification-item {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--panel-edge);
+}
+
+.x-notification-item:last-child {
+  border-bottom: none;
+}
+
+.x-notification-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.x-notification-time {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.x-notification-body {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.x-notification-type {
+  color: var(--accent);
+}
+
+.x-notification-row:hover .x-notification-body {
+  text-decoration: underline;
 }
 
 .news-headline-link.is-unverified {
@@ -1164,7 +1217,9 @@ body {
 
   .news-summary,
   .yahoo-news-link,
-  .news-headline-link {
+  .news-headline-link,
+  .x-notification-row,
+  .x-notification-body {
     max-width: 100%;
     overflow-wrap: anywhere;
     word-break: break-word;
@@ -1190,7 +1245,7 @@ body {
 }
 
 
-/* ---------- スマホのサッカー／モータースポーツ枠（2026-08-24） ---------- */
+/* ---------- スマホのサッカー／X通知枠（2026-08-24） ---------- */
 @media (max-width: 600px) {
   .news-split-col-yahoo {
     display: flex;
@@ -1219,7 +1274,8 @@ body {
     margin-bottom: 6px;
   }
 
-  .news-split-col-yahoo .yahoo-news-list {
+  .news-split-col-yahoo .yahoo-news-list,
+  .news-split-col-yahoo .x-notification-list {
     display: block;
     flex: 0 0 auto;
     width: 100%;
@@ -1229,9 +1285,16 @@ body {
 
   .news-split-col-yahoo .yahoo-news-item,
   .news-split-col-yahoo .yahoo-news-link,
-  .news-split-col-yahoo .news-summary {
+  .news-split-col-yahoo .news-summary,
+  .news-split-col-yahoo .x-notification-item,
+  .news-split-col-yahoo .x-notification-row,
+  .news-split-col-yahoo .x-notification-body {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+  }
+
+  .news-split-col-yahoo .x-notification-row {
+    grid-template-columns: 44px minmax(0, 1fr);
   }
 }
