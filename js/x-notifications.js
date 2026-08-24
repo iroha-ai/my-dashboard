@@ -1,17 +1,17 @@
-import { CONFIG } from './config.js?v=20260825-x-drive-api-fix';
+import { CONFIG } from './config.js?v=20260825-x-drive-enable-flow';
 import {
   getGoogleAccessToken,
   resetGoogleAccessToken,
-} from './calendar.js?v=20260825-x-drive-api-fix';
-import { clear, el, showMessage } from './util.js?v=20260825-x-drive-api-fix';
+} from './calendar.js?v=20260825-x-drive-enable-flow';
+import { clear, el, showMessage } from './util.js?v=20260825-x-drive-enable-flow';
 
 const MAX_ITEMS = 8;
 const FILE_ID_STORAGE_KEY = 'my-dashboard:x-notifications-drive-file-id';
-const GOOGLE_CLOUD_PROJECT_NUMBER = CONFIG.googleClientId.split('-')[0];
+const GOOGLE_CLOUD_PROJECT = CONFIG.googleCloudProjectId || CONFIG.googleClientId.split('-')[0];
 const DRIVE_API_ENABLE_URL =
-  `https://console.cloud.google.com/apis/library/drive.googleapis.com?project=${encodeURIComponent(
-    GOOGLE_CLOUD_PROJECT_NUMBER
-  )}`;
+  `https://console.cloud.google.com/flows/enableapi?apiid=drive.googleapis.com&project=${encodeURIComponent(
+    GOOGLE_CLOUD_PROJECT
+  )}&hl=ja`;
 const TYPE_LABELS = {
   post: 'ポスト',
   mention: 'メンション',

@@ -3,7 +3,7 @@
 // 新しく足したキー（transitKeywords 等）が undefined になって
 // `Cannot read properties of undefined (reading 'some')` で落ちる（2026-08-13に実際に発生）。
 // 加えて、同じファイルをクエリ有り・無しで読むと別モジュールとして二重に評価される。
-import { CONFIG } from './config.js?v=20260825-x-drive-api-fix';
+import { CONFIG } from './config.js?v=20260825-x-drive-enable-flow';
 import {
   addDays,
   clear,
@@ -13,12 +13,12 @@ import {
   showMessage,
   startOfDay,
   weekdayLabel,
-} from './util.js?v=20260825-x-drive-api-fix';
+} from './util.js?v=20260825-x-drive-enable-flow';
 import {
   renderTasks,
   showTasksMessage,
   updateTasks,
-} from './tasks.js?v=20260825-x-drive-api-fix';
+} from './tasks.js?v=20260825-x-drive-enable-flow';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 // タスク欄に加え、本人限定のX通知JSONを読むためdrive.fileを要求する。
 // drive.fileは、このダッシュボード自身が作成したファイルだけにアクセスできる。
@@ -382,7 +382,7 @@ export async function updateCalendar(onStatus) {
   if (new URLSearchParams(location.search).get('demo') === '1') {
     try {
       const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import(
-        './demo-events.js?v=20260825-x-drive-api-fix'
+        './demo-events.js?v=20260825-x-drive-enable-flow'
       );
       renderAll(DEMO_EVENTS());
       renderTasks(DEMO_TASKS());

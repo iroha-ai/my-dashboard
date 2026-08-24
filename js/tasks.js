@@ -1,4 +1,4 @@
-import { clear, el, isSameDay, showMessage } from './util.js?v=20260825-x-drive-api-fix';
+import { clear, el, isSameDay, showMessage } from './util.js?v=20260825-x-drive-enable-flow';
 
 // Google Tasks（デフォルトのタスクリストのみ）。calendar.js が取得した
 // アクセストークンをそのまま使い回すので、ここでは認証を持たない。
