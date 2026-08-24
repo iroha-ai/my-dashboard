@@ -650,7 +650,7 @@ body {
   border-right: 1px solid var(--panel-edge);
 }
 
-/* 右側は公開のサッカー欄と、本人限定のX通知アラートの2段構成。 */
+/* 右側は公開のサッカー欄と、端末内設定で表示するX公開投稿の2段構成。 */
 .news-split-col-yahoo {
   gap: 10px;
 }
@@ -811,6 +811,140 @@ body {
   font-size: 12px;
   font-weight: 400;
   overflow-wrap: anywhere;
+}
+
+.x-following-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.x-following-status {
+  color: var(--text-faint);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.x-following-controls,
+.x-following-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.x-following-select,
+.x-following-input {
+  min-width: 0;
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  background: rgba(4, 12, 23, 0.76);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.x-following-select {
+  flex: 1 1 auto;
+  padding: 5px 7px;
+}
+
+.x-following-input {
+  flex: 1 1 auto;
+  padding: 6px 8px;
+}
+
+.x-following-input::placeholder {
+  color: var(--text-faint);
+}
+
+.x-following-add,
+.x-following-remove {
+  flex: 0 0 auto;
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  padding: 5px 9px;
+  background: rgba(22, 38, 61, 0.9);
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.x-following-remove {
+  color: var(--text-dim);
+}
+
+.x-following-add:hover,
+.x-following-remove:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.x-following-add:focus-visible,
+.x-following-remove:focus-visible,
+.x-following-select:focus-visible,
+.x-following-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.x-following-remove:disabled,
+.x-following-select:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.x-following-message {
+  min-height: 1.4em;
+  margin-bottom: 4px;
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.x-following-message.is-error {
+  color: var(--danger);
+}
+
+.x-following-timeline {
+  min-height: 120px;
+  max-height: 320px;
+  overflow-y: auto;
+  border-top: 1px solid var(--panel-edge);
+  padding-top: 5px;
+}
+
+.x-following-timeline iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.x-following-profile-link,
+.x-following-timeline > .twitter-timeline {
+  display: block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.x-following-demo {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.x-following-demo-label {
+  color: var(--accent);
 }
 
 .news-headline-link.is-unverified {
@@ -1261,7 +1395,7 @@ body {
 }
 
 
-/* ---------- スマホのサッカー／X通知枠（2026-08-24） ---------- */
+/* ---------- スマホのサッカー／X投稿枠（2026-08-25） ---------- */
 @media (max-width: 600px) {
   .news-split-col-yahoo {
     display: flex;
@@ -1291,7 +1425,8 @@ body {
   }
 
   .news-split-col-yahoo .yahoo-news-list,
-  .news-split-col-yahoo .x-notification-list {
+  .news-split-col-yahoo .x-notification-list,
+  .news-split-col-yahoo .x-following-timeline {
     display: block;
     flex: 0 0 auto;
     width: 100%;
@@ -1312,5 +1447,17 @@ body {
 
   .news-split-col-yahoo .x-notification-row {
     grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .news-split-col-yahoo .x-following-controls,
+  .news-split-col-yahoo .x-following-form,
+  .news-split-col-yahoo .x-following-message,
+  .news-split-col-yahoo .x-following-timeline {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .news-split-col-yahoo .x-following-timeline {
+    max-height: 420px;
   }
 }

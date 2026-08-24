@@ -1,4 +1,4 @@
-import { pad2, weekdayLabel } from './util.js?v=20260825-x-drive-enable-flow';
+import { pad2, weekdayLabel } from './util.js?v=20260825-x-following-widget';
 
 export function startClock() {
   const timeNode = document.getElementById('clock-time');

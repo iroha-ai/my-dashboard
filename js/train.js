@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260825-x-drive-enable-flow';
-import { fetchJson } from './util.js?v=20260825-x-drive-enable-flow';
+import { CONFIG } from './config.js?v=20260825-x-following-widget';
+import { fetchJson } from './util.js?v=20260825-x-following-widget';
 
 // 運行情報。詳しい文言は出さず、該当路線のリンクの色を変えるだけにしている
 // （Hideの要望: 「アラートを受信したら、リンクの色を変えるだけでいい。

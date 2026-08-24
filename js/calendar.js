@@ -3,7 +3,7 @@
 // 新しく足したキー（transitKeywords 等）が undefined になって
 // `Cannot read properties of undefined (reading 'some')` で落ちる（2026-08-13に実際に発生）。
 // 加えて、同じファイルをクエリ有り・無しで読むと別モジュールとして二重に評価される。
-import { CONFIG } from './config.js?v=20260825-x-drive-enable-flow';
+import { CONFIG } from './config.js?v=20260825-x-following-widget';
 import {
   addDays,
   clear,
@@ -13,19 +13,16 @@ import {
   showMessage,
   startOfDay,
   weekdayLabel,
-} from './util.js?v=20260825-x-drive-enable-flow';
+} from './util.js?v=20260825-x-following-widget';
 import {
   renderTasks,
   showTasksMessage,
   updateTasks,
-} from './tasks.js?v=20260825-x-drive-enable-flow';
+} from './tasks.js?v=20260825-x-following-widget';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
-// タスク欄に加え、本人限定のX通知JSONを読むためdrive.fileを要求する。
-// drive.fileは、このダッシュボード自身が作成したファイルだけにアクセスできる。
 const SCOPE =
   'https://www.googleapis.com/auth/calendar.readonly ' +
-  'https://www.googleapis.com/auth/tasks.readonly ' +
-  'https://www.googleapis.com/auth/drive.file';
+  'https://www.googleapis.com/auth/tasks.readonly';
 
 let tokenClient = null;
 let accessToken = null;
@@ -38,9 +35,9 @@ let gisLoadRequest = null;
 // これまではJS変数だけに保持していたため、ページを再読み込みするたびに
 // トークンがまだ有効（最長1時間）でも毎回サインインをやり直す必要があった。
 // リロード直後にlocalStorageから復元できれば、有効期限内は「接続する」を
-// 押し直さずに済む。calendar/tasksは読み取り専用、Driveはアプリ作成ファイル限定の
-// 短命トークンなので、常時表示のこの端末向けにはlocalStorage保持で許容している。
-// Drive権限追加前のトークンを誤使用しないよう、保存キーを更新する。
+// 押し直さずに済む。calendar/tasksの読み取り専用・短命トークンなので、
+// 常時表示のこの端末向けにはlocalStorage保持で許容している。
+// 旧版の有効なトークンを再利用し、不要な再接続を発生させないため保存キーは維持する。
 const TOKEN_STORAGE_KEY = 'my-dashboard:google-token:v2-drive-file';
 
 function saveTokenToStorage() {
@@ -119,8 +116,8 @@ export async function getGoogleAccessToken({ interactive = false, force = false 
   if (tokenRequest) return tokenRequest;
 
   await ensureGoogleIdentityServices();
-  // カレンダーとX通知は初回に並行実行される。スクリプト読込中にもう一方が
-  // 認証を開始していた場合は、同じ要求へ合流してポップアップを重ねない。
+  // 複数の予定・タスク取得が並行した場合は、同じ要求へ合流して
+  // 認証ポップアップを重ねない。
   if (tokenRequest) return tokenRequest;
 
   if (!tokenClient) {
@@ -382,7 +379,7 @@ export async function updateCalendar(onStatus) {
   if (new URLSearchParams(location.search).get('demo') === '1') {
     try {
       const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import(
-        './demo-events.js?v=20260825-x-drive-enable-flow'
+        './demo-events.js?v=20260825-x-following-widget'
       );
       renderAll(DEMO_EVENTS());
       renderTasks(DEMO_TASKS());

@@ -32,11 +32,6 @@ export const CONFIG = {
   yahooSportsNewsDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/yahoo-sports-news.json',
 
-  // X通知アラートは公開dataブランチへ置かない。Google接続後、この名称のJSONを
-  // drive.file権限で検索し、無ければダッシュボード自身が本人のDriveへ作成する。
-  // drive.fileでは、このアプリが作成したファイル以外のDriveデータは読めない。
-  xNotificationsDriveFileName: 'x-notification-alerts.json',
-
   // automation-2 が毎日7:00・12:00・16:00に差し替える定時ニュース見出し。
   // Gmailを介さず、Yahoo!ニュース見出しと同じdataブランチ経路で読む。
   newsHeadlinesDataUrl:
@@ -85,7 +80,7 @@ export const CONFIG = {
     train: 5 * 60 * 1000,
     newsHeadlines: 5 * 60 * 1000,
     yahooSportsNews: 20 * 60 * 1000,
-    xNotifications: 5 * 60 * 1000,
+    xFollowing: 5 * 60 * 1000,
   },
 
   // 来客・外出として拾うタイトルのキーワード（部分一致）。
