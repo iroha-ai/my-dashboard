@@ -1,4 +1,4 @@
-import { clear, el } from './util.js?v=20260825-x-popup-layout';
+import { clear, el } from './util.js?v=20260825-soccer-motorsports';
 
 const ACCOUNTS_STORAGE_KEY = 'my-dashboard:x-following-accounts:v1';
 const SELECTED_STORAGE_KEY = 'my-dashboard:x-following-selected:v1';

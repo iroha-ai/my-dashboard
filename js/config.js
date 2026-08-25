@@ -37,8 +37,13 @@ export const CONFIG = {
   newsHeadlinesDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/news-headlines.json',
 
-  // Yahoo!サッカーの色分け。横浜F・マリノスは紫で表示する。
+  // サッカー・モータースポーツの色分け。横浜F・マリノスは紫、
+  // 指定したモータースポーツ語は黄色で表示する。
   yahooNewsMarinosKeywords: ['マリノス', '横浜FM', '横浜ＦＭ', '横浜F・マリノス', '横浜Ｆ・マリノス'],
+  yahooMotorsportsYellowKeywords: [
+    '角田', 'ホンダ', 'ＨＯＮＤＡ', 'Honda', 'HONDA',
+    'アストンマーティン', 'アストンマーチン', 'Aston Martin', 'アロンソ',
+  ],
 
   // 天気を出す3地点。
   // forecastArea は気象庁の予報区、warningArea は市区町村の警報・注意報コード。

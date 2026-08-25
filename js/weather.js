@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js?v=20260825-x-popup-layout';
+import { CONFIG } from './config.js?v=20260825-soccer-motorsports';
 import {
   clear,
   el,
@@ -6,7 +6,7 @@ import {
   pad2,
   showMessage,
   weekdayLabel,
-} from './util.js?v=20260825-x-popup-layout';
+} from './util.js?v=20260825-soccer-motorsports';
 
 // 気象庁の警報・注意報コード。表にない番号が来ても落とさず、番号のまま出す。
 const WARNING_NAMES = {

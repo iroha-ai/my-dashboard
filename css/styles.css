@@ -727,7 +727,7 @@ body {
   text-decoration: underline;
 }
 
-/* 横浜F・マリノス関連は紫。js/yahoo-sports-news.js のラベルに適用する。 */
+/* 横浜F・マリノス関連は紫、指定したモータースポーツ語は黄色。 */
 .yahoo-news-link.is-purple-highlight {
   color: #fff;
   font-weight: 400;
@@ -739,6 +739,10 @@ body {
 
 .yahoo-news-link.is-general-highlight .news-search-keyword {
   color: var(--accent);
+}
+
+.yahoo-news-link.is-yellow-highlight .news-search-keyword {
+  color: var(--caution);
 }
 
 .x-notification-heading {

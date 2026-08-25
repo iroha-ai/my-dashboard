@@ -1,4 +1,4 @@
-name: Yahoo!サッカーニュース見出しの更新
+name: Yahoo!サッカー・モータースポーツニュース見出しの更新
 
 on:
   schedule:
@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Yahoo!サッカーニュース見出しを取得する
+      - name: Yahoo!サッカー・モータースポーツニュース見出しを取得する
         run: node scripts/fetch-yahoo-sports-news.mjs > yahoo-sports-news.json
 
       - name: data ブランチへ上書きする
