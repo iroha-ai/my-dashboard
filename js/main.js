@@ -1,14 +1,14 @@
 // ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
-import { CONFIG } from './config.js?v=20260825-x-following-widget';
-import { startClock } from './clock.js?v=20260825-x-following-widget';
-import { updateCalendar } from './calendar.js?v=20260825-x-following-widget';
-import { updateTrain } from './train.js?v=20260825-x-following-widget';
-import { updateWeather } from './weather.js?v=20260825-x-following-widget';
-import { updateNewsDigest } from './news.js?v=20260825-x-following-widget';
-import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260825-x-following-widget';
-import { updateXFollowing } from './x-following.js?v=20260825-x-following-widget';
-import { clear, el, runPeriodically } from './util.js?v=20260825-x-following-widget';
+import { CONFIG } from './config.js?v=20260825-x-popup-layout';
+import { startClock } from './clock.js?v=20260825-x-popup-layout';
+import { updateCalendar } from './calendar.js?v=20260825-x-popup-layout';
+import { updateTrain } from './train.js?v=20260825-x-popup-layout';
+import { updateWeather } from './weather.js?v=20260825-x-popup-layout';
+import { updateNewsDigest } from './news.js?v=20260825-x-popup-layout';
+import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260825-x-popup-layout';
+import { updateXFollowing } from './x-following.js?v=20260825-x-popup-layout';
+import { clear, el, runPeriodically } from './util.js?v=20260825-x-popup-layout';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。

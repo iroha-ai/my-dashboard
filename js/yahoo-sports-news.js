@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260825-x-following-widget';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260825-x-following-widget';
+import { CONFIG } from './config.js?v=20260825-x-popup-layout';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260825-x-popup-layout';
 
 // Yahoo!ニュースの2行要約一覧（サッカー）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する

@@ -1,9 +1,9 @@
-import { CONFIG } from './config.js?v=20260825-x-following-widget';
+import { CONFIG } from './config.js?v=20260825-x-popup-layout';
 import {
   getGoogleAccessToken,
   resetGoogleAccessToken,
-} from './calendar.js?v=20260825-x-following-widget';
-import { clear, el, showMessage } from './util.js?v=20260825-x-following-widget';
+} from './calendar.js?v=20260825-x-popup-layout';
+import { clear, el, showMessage } from './util.js?v=20260825-x-popup-layout';
 
 const MAX_ITEMS = 8;
 const FILE_ID_STORAGE_KEY = 'my-dashboard:x-notifications-drive-file-id';

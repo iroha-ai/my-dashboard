@@ -3,7 +3,7 @@
 // 新しく足したキー（transitKeywords 等）が undefined になって
 // `Cannot read properties of undefined (reading 'some')` で落ちる（2026-08-13に実際に発生）。
 // 加えて、同じファイルをクエリ有り・無しで読むと別モジュールとして二重に評価される。
-import { CONFIG } from './config.js?v=20260825-x-following-widget';
+import { CONFIG } from './config.js?v=20260825-x-popup-layout';
 import {
   addDays,
   clear,
@@ -13,12 +13,12 @@ import {
   showMessage,
   startOfDay,
   weekdayLabel,
-} from './util.js?v=20260825-x-following-widget';
+} from './util.js?v=20260825-x-popup-layout';
 import {
   renderTasks,
   showTasksMessage,
   updateTasks,
-} from './tasks.js?v=20260825-x-following-widget';
+} from './tasks.js?v=20260825-x-popup-layout';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 const SCOPE =
   'https://www.googleapis.com/auth/calendar.readonly ' +
@@ -379,7 +379,7 @@ export async function updateCalendar(onStatus) {
   if (new URLSearchParams(location.search).get('demo') === '1') {
     try {
       const { DEMO_EVENTS, DEMO_TASKS, DEMO_NEWS } = await import(
-        './demo-events.js?v=20260825-x-following-widget'
+        './demo-events.js?v=20260825-x-popup-layout'
       );
       renderAll(DEMO_EVENTS());
       renderTasks(DEMO_TASKS());

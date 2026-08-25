@@ -650,7 +650,7 @@ body {
   border-right: 1px solid var(--panel-edge);
 }
 
-/* 右側は公開のサッカー欄と、端末内設定で表示するX公開投稿の2段構成。 */
+/* 右側はサッカーを主領域、Xを下部のコンパクトな起動欄にする。 */
 .news-split-col-yahoo {
   gap: 10px;
 }
@@ -660,6 +660,15 @@ body {
   flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
+}
+
+.soccer-news-block {
+  flex: 1 1 auto;
+}
+
+.x-following-block {
+  flex: 0 0 auto;
+  margin-top: auto;
 }
 
 .block-subtitle {
@@ -862,7 +871,8 @@ body {
 }
 
 .x-following-add,
-.x-following-remove {
+.x-following-remove,
+.x-following-open {
   flex: 0 0 auto;
   border: 1px solid var(--panel-edge);
   border-radius: 6px;
@@ -880,20 +890,23 @@ body {
 }
 
 .x-following-add:hover,
-.x-following-remove:hover:not(:disabled) {
+.x-following-remove:hover:not(:disabled),
+.x-following-open:hover:not(:disabled) {
   border-color: var(--accent);
 }
 
 .x-following-add:focus-visible,
 .x-following-remove:focus-visible,
 .x-following-select:focus-visible,
-.x-following-input:focus-visible {
+.x-following-input:focus-visible,
+.x-following-open:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
 .x-following-remove:disabled,
-.x-following-select:disabled {
+.x-following-select:disabled,
+.x-following-open:disabled {
   cursor: default;
   opacity: 0.55;
 }
@@ -911,40 +924,11 @@ body {
   color: var(--danger);
 }
 
-.x-following-timeline {
-  min-height: 120px;
-  max-height: 320px;
-  overflow-y: auto;
-  border-top: 1px solid var(--panel-edge);
-  padding-top: 5px;
-}
-
-.x-following-timeline iframe {
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-.x-following-profile-link,
-.x-following-timeline > .twitter-timeline {
-  display: block;
-  margin-top: 6px;
-  color: var(--accent);
-  font-size: 13px;
-  font-weight: 400;
-}
-
-.x-following-demo {
-  display: flex;
-  gap: 4px;
-  padding: 8px 0;
+.x-following-open {
+  width: 100%;
+  padding: 7px 10px;
   color: #fff;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.45;
-}
-
-.x-following-demo-label {
-  color: var(--accent);
+  text-align: center;
 }
 
 .news-headline-link.is-unverified {
@@ -1425,8 +1409,7 @@ body {
   }
 
   .news-split-col-yahoo .yahoo-news-list,
-  .news-split-col-yahoo .x-notification-list,
-  .news-split-col-yahoo .x-following-timeline {
+  .news-split-col-yahoo .x-notification-list {
     display: block;
     flex: 0 0 auto;
     width: 100%;
@@ -1452,12 +1435,8 @@ body {
   .news-split-col-yahoo .x-following-controls,
   .news-split-col-yahoo .x-following-form,
   .news-split-col-yahoo .x-following-message,
-  .news-split-col-yahoo .x-following-timeline {
+  .news-split-col-yahoo .x-following-open {
     width: 100%;
     max-width: 100%;
-  }
-
-  .news-split-col-yahoo .x-following-timeline {
-    max-height: 420px;
   }
 }

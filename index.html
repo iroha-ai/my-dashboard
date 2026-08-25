@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Dashboard</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="css/styles.css?v=20260825-x-following-widget">
+<link rel="stylesheet" href="css/styles.css?v=20260825-x-popup-layout">
 </head>
 <body>
 
@@ -94,8 +94,8 @@
     </section>
 
     <!-- 定時ニュース欄。左＝automation-2の検索結果を直接表示する見出し一覧、
-         右＝Yahoo!サッカーの2行要約と本人限定のX通知アラートを横に二分割
-         （X通知はGoogle Driveのアプリ専用ファイルから認証後に読む）。
+         右＝Yahoo!サッカーの2行要約と、端末内設定のXアカウントを別ウィンドウで開く欄。
+         X欄は下部へ小さく置き、サッカー欄へ広く高さを配分する。
          左位置は今日の予定の列に揃えている（.center参照）。 -->
     <section class="panel week-calendar">
       <div class="news-split">
@@ -111,7 +111,7 @@
         </div>
 
         <div class="news-split-col news-split-col-yahoo">
-          <div class="yahoo-news-block">
+          <div class="yahoo-news-block soccer-news-block">
             <h3 class="block-subtitle">サッカー</h3>
             <ul id="yahoo-sports-list" class="yahoo-news-list">
               <li class="placeholder">読み込み中</li>
@@ -140,9 +140,9 @@
               <button class="x-following-add" type="submit">追加</button>
             </form>
             <div id="x-following-message" class="x-following-message" aria-live="polite"></div>
-            <div id="x-following-timeline" class="x-following-timeline">
-              <div class="placeholder">読み込み中</div>
-            </div>
+            <button id="x-following-open" class="x-following-open" type="button" disabled>
+              選択中の投稿を別ウィンドウで開く
+            </button>
           </div>
         </div>
       </div>
@@ -215,6 +215,6 @@
 
 </main>
 
-<script type="module" src="js/main.js?v=20260825-x-following-widget"></script>
+<script type="module" src="js/main.js?v=20260825-x-popup-layout"></script>
 </body>
 </html>

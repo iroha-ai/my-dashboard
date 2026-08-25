@@ -1,9 +1,15 @@
-import { clear, el, showMessage } from './util.js?v=20260825-x-following-widget';
+import { clear, el } from './util.js?v=20260825-x-popup-layout';
 
 const ACCOUNTS_STORAGE_KEY = 'my-dashboard:x-following-accounts:v1';
 const SELECTED_STORAGE_KEY = 'my-dashboard:x-following-selected:v1';
-const X_WIDGET_SCRIPT_ID = 'x-widgets-script';
-const X_WIDGET_SRC = 'https://platform.twitter.com/widgets.js';
+const X_WINDOW_NAME = 'my-dashboard-x-following';
+const X_WINDOW_FEATURES = [
+  'popup=yes',
+  'width=760',
+  'height=900',
+  'resizable=yes',
+  'scrollbars=yes',
+].join(',');
 const RESERVED_PATHS = new Set([
   'compose',
   'explore',
@@ -15,7 +21,6 @@ const RESERVED_PATHS = new Set([
   'settings',
 ]);
 
-let widgetsRequest = null;
 let controlsBound = false;
 let currentOnStatus = null;
 
@@ -49,6 +54,25 @@ export function parseXHandles(value) {
 
 export function mergeXHandles(current, additions) {
   return parseXHandles([...(current || []), ...(additions || [])].join(' '));
+}
+
+export function buildXProfileUrl(handle) {
+  const normalized = normalizeXHandle(handle);
+  return normalized ? `https://x.com/${encodeURIComponent(normalized)}` : '';
+}
+
+export function openXProfileWindow(handle, openWindow = globalThis.open) {
+  const url = buildXProfileUrl(handle);
+  if (!url || typeof openWindow !== 'function') return false;
+
+  const popup = openWindow(url, X_WINDOW_NAME, X_WINDOW_FEATURES);
+  if (!popup) return false;
+  try {
+    popup.opener = null;
+  } catch {
+    // 別ウィンドウは開けているため、openerを変更できなくても表示は継続する。
+  }
+  return true;
 }
 
 function loadAccounts() {
@@ -106,6 +130,7 @@ function showPanelMessage(message, isError = false) {
 function renderAccountControls(accounts, selectedHandle) {
   const select = document.getElementById('x-following-account');
   const removeButton = document.getElementById('x-following-remove');
+  const openButton = document.getElementById('x-following-open');
   if (!select) return;
 
   clear(select);
@@ -123,105 +148,17 @@ function renderAccountControls(accounts, selectedHandle) {
   }
   select.disabled = accounts.length === 0;
   if (removeButton) removeButton.disabled = accounts.length === 0;
-}
-
-function ensureXWidgets() {
-  if (globalThis.twttr?.widgets?.load) return Promise.resolve(globalThis.twttr);
-  if (widgetsRequest) return widgetsRequest;
-
-  widgetsRequest = new Promise((resolve, reject) => {
-    const finish = () => {
-      if (globalThis.twttr?.widgets?.load) {
-        resolve(globalThis.twttr);
-        return;
-      }
-      if (globalThis.twttr?.ready) {
-        globalThis.twttr.ready((twttr) => resolve(twttr));
-        return;
-      }
-      reject(new Error('Xウィジェットを初期化できませんでした'));
-    };
-
-    const existing = document.getElementById(X_WIDGET_SCRIPT_ID);
-    if (existing) {
-      existing.addEventListener('load', finish, { once: true });
-      existing.addEventListener(
-        'error',
-        () => reject(new Error('Xウィジェットを読み込めませんでした')),
-        { once: true }
-      );
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = X_WIDGET_SCRIPT_ID;
-    script.src = X_WIDGET_SRC;
-    script.async = true;
-    script.charset = 'utf-8';
-    script.addEventListener('load', finish, { once: true });
-    script.addEventListener(
-      'error',
-      () => reject(new Error('Xウィジェットを読み込めませんでした')),
-      { once: true }
-    );
-    document.head.appendChild(script);
-  }).catch((error) => {
-    widgetsRequest = null;
-    throw error;
-  });
-
-  return widgetsRequest;
-}
-
-function appendProfileLink(container, handle, className = 'x-following-profile-link') {
-  const link = el('a', className, `@${handle}をXで開く`);
-  link.href = `https://x.com/${encodeURIComponent(handle)}`;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  container.appendChild(link);
-  return link;
-}
-
-async function renderProfileTimeline(handle) {
-  const container = document.getElementById('x-following-timeline');
-  if (!container) return;
-
-  clear(container);
-  const timeline = el('a', 'twitter-timeline', `@${handle}の公開投稿を表示`);
-  timeline.href = `https://x.com/${encodeURIComponent(handle)}`;
-  timeline.dataset.theme = 'dark';
-  timeline.dataset.height = '320';
-  timeline.dataset.chrome = 'noheader nofooter noborders transparent';
-  timeline.dataset.dnt = 'true';
-  timeline.setAttribute('aria-label', `@${handle}の公開投稿`);
-  container.appendChild(timeline);
-
-  try {
-    const twttr = await ensureXWidgets();
-    await twttr.widgets.load(container);
-    setPanelStatus(`@${handle}`);
-    showPanelMessage('公開投稿を5分ごとに再読込。この端末の設定だけを使用。');
-  } catch (error) {
-    console.error('X公開投稿の表示に失敗', error);
-    clear(container);
-    showMessage(container, 'Xの投稿を埋め込めませんでした', true);
-    appendProfileLink(container, handle);
-    setPanelStatus('表示失敗');
-    showPanelMessage('広告ブロックや追跡防止設定でXウィジェットが止まることがあります。', true);
-    throw error;
+  if (openButton) {
+    openButton.disabled = accounts.length === 0;
+    openButton.textContent = selectedHandle
+      ? `@${selectedHandle}の投稿を別ウィンドウで開く`
+      : '選択中の投稿を別ウィンドウで開く';
   }
 }
 
 function renderEmptyState() {
-  const container = document.getElementById('x-following-timeline');
-  if (container) {
-    showMessage(
-      container,
-      '上の欄へ @アカウント名 またはXプロフィールURLを追加してください'
-    );
-  }
   setPanelStatus('未設定');
-  showPanelMessage('登録先はこの端末内だけ。複数は空白・改行・読点で追加できます。');
+  showPanelMessage('登録先はこの端末内だけ。追加すると別ウィンドウで開けます。');
 }
 
 async function renderCurrentSelection(onStatus) {
@@ -235,12 +172,9 @@ async function renderCurrentSelection(onStatus) {
     return;
   }
 
-  try {
-    await renderProfileTimeline(selectedHandle);
-    onStatus?.('xFollowing', null, false);
-  } catch {
-    onStatus?.('xFollowing', 'X投稿の表示に失敗', true);
-  }
+  setPanelStatus(`@${selectedHandle}`);
+  showPanelMessage('ダッシュボードを残したまま、Xを独立ウィンドウで開きます。');
+  onStatus?.('xFollowing', null, false);
 }
 
 function bindControls() {
@@ -249,7 +183,8 @@ function bindControls() {
   const input = document.getElementById('x-following-input');
   const select = document.getElementById('x-following-account');
   const removeButton = document.getElementById('x-following-remove');
-  if (!form || !input || !select || !removeButton) return;
+  const openButton = document.getElementById('x-following-open');
+  if (!form || !input || !select || !removeButton || !openButton) return;
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -285,20 +220,28 @@ function bindControls() {
     await renderCurrentSelection(currentOnStatus);
   });
 
+  openButton.addEventListener('click', () => {
+    const handle = normalizeXHandle(select.value);
+    if (!handle) {
+      showPanelMessage('先に表示するXアカウントを選んでください。', true);
+      return;
+    }
+
+    const opened = openXProfileWindow(handle, globalThis.open?.bind(globalThis));
+    if (!opened) {
+      showPanelMessage('別ウィンドウを開けませんでした。ポップアップを許可してください。', true);
+      return;
+    }
+    showPanelMessage(`@${handle}を別ウィンドウで開きました。`);
+  });
+
   controlsBound = true;
 }
 
 function renderDemo(onStatus) {
-  const container = document.getElementById('x-following-timeline');
-  if (container) {
-    clear(container);
-    const card = el('div', 'x-following-demo');
-    card.appendChild(el('span', 'x-following-demo-label', '【公開投稿】'));
-    card.appendChild(el('span', '', '@sample_account：新しい投稿の表示例です。'));
-    container.appendChild(card);
-  }
+  renderAccountControls(['sample_account'], 'sample_account');
   setPanelStatus('デモ');
-  showPanelMessage('本番では登録した公開アカウントのX公式タイムラインを表示します。');
+  showPanelMessage('本番では登録した公開アカウントを別ウィンドウで開きます。');
   onStatus?.('xFollowing', null, false);
 }
 

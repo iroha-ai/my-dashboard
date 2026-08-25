@@ -1,4 +1,4 @@
-import { pad2, weekdayLabel } from './util.js?v=20260825-x-following-widget';
+import { pad2, weekdayLabel } from './util.js?v=20260825-x-popup-layout';
 
 export function startClock() {
   const timeNode = document.getElementById('clock-time');

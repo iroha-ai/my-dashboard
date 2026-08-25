@@ -2,8 +2,10 @@
 import assert from 'node:assert/strict';
 
 const {
+  buildXProfileUrl,
   mergeXHandles,
   normalizeXHandle,
+  openXProfileWindow,
   parseXHandles,
   updateXFollowing,
 } = await import('../js/x-following.js');
@@ -27,6 +29,23 @@ assert.deepEqual(
   mergeXHandles(['sample_user', 'second_user'], ['SAMPLE_USER', 'third_user']),
   ['sample_user', 'second_user', 'third_user']
 );
+
+assert.equal(buildXProfileUrl('@sample_user'), 'https://x.com/sample_user');
+let openedArgs = null;
+const popup = { opener: 'dashboard' };
+assert.equal(
+  openXProfileWindow('@sample_user', (...args) => {
+    openedArgs = args;
+    return popup;
+  }),
+  true
+);
+assert.equal(openedArgs[0], 'https://x.com/sample_user');
+assert.equal(openedArgs[1], 'my-dashboard-x-following');
+assert.match(openedArgs[2], /popup=yes/);
+assert.equal(popup.opener, null);
+assert.equal(openXProfileWindow('not-valid-handle', () => popup), false);
+assert.equal(openXProfileWindow('@sample_user', () => null), false);
 
 class FakeNode {
   constructor(tagName = '') {
@@ -75,7 +94,7 @@ const nodes = {
   'x-following-input': new FakeNode('input'),
   'x-following-message': new FakeNode('div'),
   'x-following-status': new FakeNode('span'),
-  'x-following-timeline': new FakeNode('div'),
+  'x-following-open': new FakeNode('button'),
 };
 
 globalThis.document = {
@@ -96,6 +115,7 @@ await updateXFollowing((key, message, isError) => {
 });
 assert.equal(completed, true);
 assert.equal(nodes['x-following-status'].textContent, 'デモ');
-assert.match(nodes['x-following-timeline'].textContent, /@sample_account/);
+assert.equal(nodes['x-following-open'].disabled, false);
+assert.match(nodes['x-following-open'].textContent, /@sample_account/);
 
 console.log('Xフォロー中アカウントの正規化テスト: OK');
