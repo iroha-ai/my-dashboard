@@ -1,39 +1,80 @@
-import { clear, el } from './util.js?v=20260905-ai-usage';
+import { clear, el } from './util.js?v=20260905-ai-usage-windows';
 
 const REFRESH_MS = 60_000;
 
+const SHORT_LABELS = {
+  session: '5h',
+  weekly: '週',
+  auto: '月',
+  api: 'API',
+};
+
+function windowShortLabel(window) {
+  if (window.key && SHORT_LABELS[window.key]) return SHORT_LABELS[window.key];
+  if (window.label === '5時間') return '5h';
+  if (window.label === '週間') return '週';
+  return window.label ?? '—';
+}
+
+function windowState(remaining) {
+  if (remaining == null) return '';
+  if (remaining <= 20) return 'is-low';
+  if (remaining <= 50) return 'is-mid';
+  return '';
+}
+
 function providerState(provider) {
   if (provider.status === 'error') return 'is-error';
-  const remaining = provider.windows?.[0]?.remainingPercent;
-  if (remaining != null && remaining <= 20) return 'is-low';
-  if (remaining != null && remaining <= 50) return 'is-mid';
-  return '';
+  const windows = provider.windows || [];
+  if (!windows.length) return '';
+  const worst = Math.min(...windows.map((window) => window.remainingPercent ?? 100));
+  return windowState(worst);
 }
 
 function providerTitle(provider) {
   if (provider.status === 'error') return `${provider.label}: ${provider.error || '取得失敗'}`;
   const windows = (provider.windows || []).map((window) => {
     const reset = window.resetAt ? `、復活 ${window.resetAt}` : '';
-    return `${window.label} ${window.remainingPercent ?? '—'}%${reset}`;
+    return `${windowShortLabel(window)} ${window.remainingPercent ?? '—'}%${reset}`;
   });
   return `${provider.label}: ${windows.join('／') || '使用量なし'}`;
 }
 
-function renderProvider(provider) {
-  const item = el('div', `ai-usage-provider ${providerState(provider)}`.trim());
-  item.title = providerTitle(provider);
+function renderWindow(window) {
+  const remaining = window.remainingPercent;
+  const block = el('div', `ai-usage-window ${windowState(remaining)}`.trim());
 
-  const head = el('div', 'ai-usage-provider-head');
-  head.appendChild(el('span', 'ai-usage-provider-name', provider.label));
-  const remaining = provider.windows?.[0]?.remainingPercent;
-  head.appendChild(el('span', 'ai-usage-provider-value', provider.status === 'error' ? '×' : remaining == null ? '—' : `${remaining}%`));
-  item.appendChild(head);
+  const head = el('div', 'ai-usage-window-head');
+  head.appendChild(el('span', 'ai-usage-window-label', windowShortLabel(window)));
+  head.appendChild(el('span', 'ai-usage-window-value', remaining == null ? '—' : `${remaining}%`));
+  block.appendChild(head);
 
   const bar = el('div', 'ai-usage-bar');
   const fill = document.createElement('span');
   fill.style.width = `${remaining ?? 0}%`;
   bar.appendChild(fill);
-  item.appendChild(bar);
+  block.appendChild(bar);
+  return block;
+}
+
+function renderProvider(provider) {
+  const item = el('div', `ai-usage-provider ${providerState(provider)}`.trim());
+  item.title = providerTitle(provider);
+  item.appendChild(el('div', 'ai-usage-provider-name', provider.label));
+
+  if (provider.status === 'error') {
+    item.appendChild(el('div', 'ai-usage-provider-error', '×'));
+    return item;
+  }
+
+  const windows = el('div', 'ai-usage-windows');
+  for (const window of provider.windows || []) {
+    windows.appendChild(renderWindow(window));
+  }
+  if (!windows.childElementCount) {
+    windows.appendChild(el('div', 'ai-usage-window-value', '—'));
+  }
+  item.appendChild(windows);
   return item;
 }
 
