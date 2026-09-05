@@ -69,6 +69,111 @@ body {
   color: var(--text-dim);
 }
 
+/* AI Usage は資格情報を使うローカル API からだけ読む。時計・日付の流れを
+   崩さないよう、各サービスは残量と細いバーだけを横並びにする。 */
+.ai-usage {
+  min-width: 330px;
+  padding-left: 14px;
+  border-left: 1px solid var(--panel-edge);
+}
+
+.ai-usage-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+}
+
+.ai-usage-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.ai-usage-updated {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-usage-refresh {
+  appearance: none;
+  margin: 0;
+  padding: 0 3px;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ai-usage-refresh:hover:not(:disabled) { color: var(--accent); }
+.ai-usage-refresh:disabled { cursor: wait; }
+
+.ai-usage-providers {
+  display: flex;
+  gap: 8px;
+}
+
+.ai-usage-provider {
+  width: 76px;
+  min-width: 0;
+}
+
+.ai-usage-provider-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3px;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.ai-usage-provider-name {
+  overflow: hidden;
+  color: var(--text-dim);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-usage-provider-value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-usage-bar {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #2a3340;
+}
+
+.ai-usage-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ok);
+}
+
+.ai-usage-provider.is-mid .ai-usage-bar > span { background: var(--caution); }
+.ai-usage-provider.is-low .ai-usage-bar > span { background: var(--warn); }
+.ai-usage-provider.is-error .ai-usage-provider-value { color: var(--warn); }
+
+.ai-usage-placeholder,
+.ai-usage-error {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--text-faint);
+}
+
+.ai-usage-error { color: var(--warn); }
+
+@media (max-width: 1400px) {
+  .topbar { flex-wrap: wrap; }
+  .topbar-meta { align-items: flex-start; }
+}
+
 .topbar-meta {
   display: flex;
   flex-direction: column;
@@ -1133,6 +1238,10 @@ body {
     font-size: 16px;
   }
 
+  .ai-usage {
+    min-width: 300px;
+  }
+
   .topbar-meta {
     align-items: flex-start;
   }
@@ -1249,6 +1358,23 @@ body {
 
   .clock-date {
     font-size: 14px;
+  }
+
+  .ai-usage {
+    width: 100%;
+    min-width: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .ai-usage-providers {
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .ai-usage-provider {
+    flex: 1 1 0;
+    width: auto;
   }
 
   .topbar-meta {

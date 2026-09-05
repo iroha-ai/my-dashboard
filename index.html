@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Dashboard</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="css/styles.css?v=20260825-soccer-motorsports">
+<link rel="stylesheet" href="css/styles.css?v=20260905-ai-usage">
 </head>
 <body>
 
@@ -13,6 +13,14 @@
   <div class="clock">
     <span id="clock-time" class="clock-time">--:--:--</span>
     <span id="clock-date" class="clock-date">----年--月--日（-）</span>
+    <section class="ai-usage" aria-label="AI 使用率">
+      <div class="ai-usage-head">
+        <span class="ai-usage-title">AI Usage</span>
+        <span id="ai-usage-updated" class="ai-usage-updated">接続中</span>
+        <button id="ai-usage-refresh" class="ai-usage-refresh" type="button" aria-label="AI 使用率を更新">↻</button>
+      </div>
+      <div id="ai-usage-providers" class="ai-usage-providers"></div>
+    </section>
   </div>
   <div class="topbar-meta">
     <div id="updated-at" class="updated-at" aria-live="polite">
@@ -215,6 +223,6 @@
 
 </main>
 
-<script type="module" src="js/main.js?v=20260825-soccer-motorsports"></script>
+<script type="module" src="js/main.js?v=20260905-ai-usage"></script>
 </body>
 </html>

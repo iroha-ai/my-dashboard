@@ -1,4 +1,4 @@
-import { pad2, weekdayLabel } from './util.js?v=20260825-soccer-motorsports';
+import { pad2, weekdayLabel } from './util.js?v=20260905-ai-usage';
 
 export function startClock() {
   const timeNode = document.getElementById('clock-time');

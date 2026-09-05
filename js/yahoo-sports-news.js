@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260825-soccer-motorsports';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260825-soccer-motorsports';
+import { CONFIG } from './config.js?v=20260905-ai-usage';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260905-ai-usage';
 
 // Yahoo!ニュースの2行要約一覧（サッカー／モータースポーツ）。
 // 定時ニュース欄（メールダイジェスト）の右側に表示する

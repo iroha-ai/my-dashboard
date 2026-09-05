@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260825-soccer-motorsports';
-import { clear, el, fetchJson, showMessage } from './util.js?v=20260825-soccer-motorsports';
+import { CONFIG } from './config.js?v=20260905-ai-usage';
+import { clear, el, fetchJson, showMessage } from './util.js?v=20260905-ai-usage';
 
 // 2026-08-23以降の現行経路。automation-2 が data ブランチへ差し替える
 // 見出しJSONを読み、Yahoo!ニュース欄と同じく2行相当の要約を直接表示する。

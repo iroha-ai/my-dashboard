@@ -6,6 +6,10 @@
 // 銘柄を増減・変更したいときは index.html の `.market-widgets` を編集する。
 
 export const CONFIG = {
+  // AI 使用率はローカルの補助サーバーだけが各 CLI の認証情報を読む。
+  // GitHub Pages には数値を保存・公開しない。
+  aiUsageApiUrl: 'http://127.0.0.1:9876/api/usage',
+
   // Google Cloud コンソールで作成した OAuth 2.0 クライアントID（ウェブアプリケーション）。
   // 承認済みの JavaScript 生成元に、このダッシュボードのURLを登録しておくこと。
   googleClientId:

@@ -1,4 +1,4 @@
-import { clear, el } from './util.js?v=20260825-soccer-motorsports';
+import { clear, el } from './util.js?v=20260905-ai-usage';
 
 const ACCOUNTS_STORAGE_KEY = 'my-dashboard:x-following-accounts:v1';
 const SELECTED_STORAGE_KEY = 'my-dashboard:x-following-selected:v1';

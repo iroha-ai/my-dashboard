@@ -1,9 +1,9 @@
-import { CONFIG } from './config.js?v=20260825-soccer-motorsports';
+import { CONFIG } from './config.js?v=20260905-ai-usage';
 import {
   getGoogleAccessToken,
   resetGoogleAccessToken,
-} from './calendar.js?v=20260825-soccer-motorsports';
-import { clear, el, showMessage } from './util.js?v=20260825-soccer-motorsports';
+} from './calendar.js?v=20260905-ai-usage';
+import { clear, el, showMessage } from './util.js?v=20260905-ai-usage';
 
 const MAX_ITEMS = 8;
 const FILE_ID_STORAGE_KEY = 'my-dashboard:x-notifications-drive-file-id';
