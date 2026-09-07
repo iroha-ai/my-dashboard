@@ -90,11 +90,25 @@ async function updateAndStamp(key, update) {
   if (completed) markUpdated(key);
 }
 
-// 飛び先が空のあいだは出さない。public なこのリポジトリに実URLを置かないため。
+// 飛び先の実URLはこのリポジトリに置かない（public のため）。
+// config が空のときは、その画面のブラウザに覚えさせた値を見る。
+// 会社モニターのブラウザで一度だけ、開発者ツールのコンソールから:
+//   localStorage.setItem('healthMonitorUrl', 'https://...')
+// どちらも空ならリンクは出ない。値はそのブラウザから外へ出ない。
 const healthLink = document.getElementById('health-link');
-if (healthLink && CONFIG.healthMonitorUrl) {
-  healthLink.href = CONFIG.healthMonitorUrl;
-  healthLink.hidden = false;
+if (healthLink) {
+  let healthUrl = CONFIG.healthMonitorUrl;
+  if (!healthUrl) {
+    try {
+      healthUrl = localStorage.getItem('healthMonitorUrl') || '';
+    } catch (err) {
+      healthUrl = '';
+    }
+  }
+  if (healthUrl) {
+    healthLink.href = healthUrl;
+    healthLink.hidden = false;
+  }
 }
 
 startClock();
