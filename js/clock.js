@@ -1,4 +1,4 @@
-import { pad2, weekdayLabel } from './util.js?v=20260905-ai-usage';
+import { pad2, weekdayLabel } from './util.js?v=20260907-health-link';
 
 export function startClock() {
   const timeNode = document.getElementById('clock-time');

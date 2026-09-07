@@ -208,6 +208,23 @@ body {
   color: var(--text-faint);
 }
 
+/* 外部の画面へ飛ぶリンク。飛び先が未設定なら出さない。 */
+.quick-links {
+  display: flex;
+  gap: 14px;
+}
+
+.quick-links:empty { display: none; }
+
+.quick-link {
+  font-size: 15px;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.quick-link:hover { text-decoration: underline; }
+
 .status-strip .status-error { color: var(--warn); }
 .status-strip .status-action {
   color: var(--accent);

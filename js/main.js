@@ -1,15 +1,15 @@
 // ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
-import { CONFIG } from './config.js?v=20260905-ai-usage-windows';
-import { startAiUsage } from './ai-usage.js?v=20260905-ai-usage-windows';
-import { startClock } from './clock.js?v=20260905-ai-usage-windows';
-import { updateCalendar } from './calendar.js?v=20260905-ai-usage-windows';
-import { updateTrain } from './train.js?v=20260905-ai-usage-windows';
-import { updateWeather } from './weather.js?v=20260905-ai-usage-windows';
-import { updateNewsDigest } from './news.js?v=20260905-ai-usage-windows';
-import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260905-ai-usage-windows';
-import { updateXFollowing } from './x-following.js?v=20260905-ai-usage-windows';
-import { clear, el, runPeriodically } from './util.js?v=20260905-ai-usage-windows';
+import { CONFIG } from './config.js?v=20260907-health-link';
+import { startAiUsage } from './ai-usage.js?v=20260907-health-link';
+import { startClock } from './clock.js?v=20260907-health-link';
+import { updateCalendar } from './calendar.js?v=20260907-health-link';
+import { updateTrain } from './train.js?v=20260907-health-link';
+import { updateWeather } from './weather.js?v=20260907-health-link';
+import { updateNewsDigest } from './news.js?v=20260907-health-link';
+import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260907-health-link';
+import { updateXFollowing } from './x-following.js?v=20260907-health-link';
+import { clear, el, runPeriodically } from './util.js?v=20260907-health-link';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。
@@ -88,6 +88,27 @@ async function updateAndStamp(key, update) {
     return;
   }
   if (completed) markUpdated(key);
+}
+
+// 飛び先の実URLはこのリポジトリに置かない（public のため）。
+// config が空のときは、その画面のブラウザに覚えさせた値を見る。
+// 会社モニターのブラウザで一度だけ、開発者ツールのコンソールから:
+//   localStorage.setItem('healthMonitorUrl', 'https://...')
+// どちらも空ならリンクは出ない。値はそのブラウザから外へ出ない。
+const healthLink = document.getElementById('health-link');
+if (healthLink) {
+  let healthUrl = CONFIG.healthMonitorUrl;
+  if (!healthUrl) {
+    try {
+      healthUrl = localStorage.getItem('healthMonitorUrl') || '';
+    } catch (err) {
+      healthUrl = '';
+    }
+  }
+  if (healthUrl) {
+    healthLink.href = healthUrl;
+    healthLink.hidden = false;
+  }
 }
 
 startClock();
