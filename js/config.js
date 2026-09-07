@@ -10,6 +10,12 @@ export const CONFIG = {
   // GitHub Pages には数値を保存・公開しない。
   aiUsageApiUrl: 'http://127.0.0.1:9876/api/usage',
 
+  // ヘルスリズム（個人コンディションモニター）を開く先。
+  // このリポジトリは public なので、URL は空のまま置いている。
+  // 空のあいだヘッダーのリンクは出ない（js/main.js が hidden にする）。
+  // 実URLを入れた時点でそれ自体が公開されるので、入れるかどうかは別途判断する。
+  healthMonitorUrl: '',
+
   // Google Cloud コンソールで作成した OAuth 2.0 クライアントID（ウェブアプリケーション）。
   // 承認済みの JavaScript 生成元に、このダッシュボードのURLを登録しておくこと。
   googleClientId:
