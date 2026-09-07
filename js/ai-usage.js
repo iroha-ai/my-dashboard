@@ -1,4 +1,4 @@
-import { clear, el } from './util.js?v=20260907-health-link';
+import { clear, el } from './util.js?v=20260905-ai-usage-windows';
 
 const REFRESH_MS = 60_000;
 
