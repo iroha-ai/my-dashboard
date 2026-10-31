@@ -1,0 +1,11 @@
+{
+  "updatedAt": "2026-10-31T08:44:45.987Z",
+  "items": [
+    {
+      "id": "ginza",
+      "label": "銀座線",
+      "ok": false,
+      "reason": "取得失敗: JSONPの形式が想定と違う"
+    }
+  ]
+}
