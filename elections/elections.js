@@ -156,7 +156,10 @@ function renderNews(data) {
     li.appendChild(el('span', outcomeClass, item.outcome || '不明'));
     const level = [item.level, item.tier].filter(Boolean).join('・');
     li.appendChild(el('span', 'chip level', level || '不明'));
+    // 見出しに参政党が出ない記事は、ほかの候補の当落なので「関連」として区別する（集計にも入れない）。
+    if (item.partyInHeadline === false) li.classList.add('is-related');
     const a = el('a', null, item.title);
+    if (item.partyInHeadline === false) a.prepend(el('span', 'chip', '関連'));
     a.href = item.link; a.target = '_blank'; a.rel = 'noopener';
     if (item.isNew) a.prepend(el('span', 'chip new', '新着'));
     li.appendChild(a);

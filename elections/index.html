@@ -35,6 +35,7 @@
   .meta { color: var(--dim); font-size: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .live { display: inline-flex; align-items: center; gap: 6px; background: var(--live); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .12em; padding: 2px 10px; border-radius: 3px; }
   .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: blink 1.4s infinite; }
+  .live[hidden] { display: none; }
   @keyframes blink { 50% { opacity: .25; } }
   @media (prefers-reduced-motion: reduce) { .live::before { animation: none; } }
   .error { color: var(--win); }
@@ -106,6 +107,9 @@
   .chip.loss { color: var(--faint); }
   .chip.new { border-color: var(--party); color: var(--party); margin-right: 8px; }
   .news a { text-decoration: none; min-width: 0; overflow-wrap: anywhere; }
+  .news li.is-related a { color: var(--dim); }
+  .news li.is-related .chip.win { background: transparent; border-color: var(--edge); color: var(--dim); font-weight: 400; }
+  .news a .chip { margin-right: 8px; }
   .news a:hover { text-decoration: underline; }
   .when { font-size: 13px; color: var(--faint); white-space: nowrap; }
   footer { font-size: 13px; color: var(--faint); }
@@ -142,12 +146,12 @@
   </section>
 
   <section data-scope="local">
-    <h2>地方選・ニュース <span>見出しからの自動分類（確定値ではない）</span></h2>
+    <h2>地方選・ニュース <span>見出しからの自動分類（確定値ではない）。「関連」は参政党以外の当落で、集計に入れていない</span></h2>
     <div class="news"><ul id="news"></ul></div>
   </section>
 
   <footer id="footer">確定の当落は各選挙管理委員会の公表で確かめてください。</footer>
 </div>
-<script type="module" src="elections.js?v=20261109-elections"></script>
+<script type="module" src="elections.js?v=20261109b-elections"></script>
 </body>
 </html>
