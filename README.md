@@ -33,6 +33,14 @@ JSONは毎日7:00・12:00・16:00に`data`ブランチの`news-headlines.json`�
 ２０２６年８月２３日まではGmailのダイジェストメールを中継していたが、現在はYahoo!ニュース
 見出しと同じ公開JSON経路へ統一しており、ニュース表示にGoogle認証は使わない。
 
+**参政党 開票ボード（`elections/`、2026-11-09追加）:** PersonalVault 側の
+`ops/scripts/election-monitor-scheduled.ps1` が、1日3回（8:10・12:40・21:40）と開票日の夜（20分おき）に
+`data`ブランチの`sanseito-elections.json`を差し替える。国政は選管の開票結果から選挙区ごとに候補者を得票順で、
+比例は政党別得票とドント式の見込み議席で、地方はニュース見出しの当落分類で表示する。メイン画面には
+リンク欄の「参政党 開票ボード」と、開票ライブ中だけヘッダーのステータス欄に短い速報を出す。
+`data`ブランチを書き換える3ワークフローは`sanseito-elections.json`も引き継ぐ。運用の正本は
+PersonalVault の `ops/methodology/参政党の選挙当落モニター.md`。
+
 来客・外出への振り分けは、タイトルに「来客」「外出」を含むか（`visitorKeywords`）、
 または説明欄に「Powered by 駅すぱあと」を含むか（`visitorDescriptionMarkers`）で判定する。
 後者は経路検索連携で自動生成された移動の予定を拾うためのもの。どちらも `js/config.js` で調整できる。
