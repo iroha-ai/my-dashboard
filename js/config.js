@@ -41,6 +41,12 @@ export const CONFIG = {
   newsHeadlinesDataUrl:
     'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/news-headlines.json',
 
+  // 参政党 選挙当落モニター（PersonalVault の election-monitor-scheduled.ps1 が
+  // 定時1日3回、開票日の夜は20分おきに data ブランチへ差し替える。2026-11-09追加）。
+  // 詳細は elections/ の開票ボード、メイン画面はヘッダーに開票中の速報だけ出す。
+  sanseitoElectionsDataUrl:
+    'https://raw.githubusercontent.com/iroha-ai/my-dashboard/data/sanseito-elections.json',
+
   // サッカー・モータースポーツの色分け。横浜F・マリノスは紫、
   // 指定したモータースポーツ語は黄色で表示する。
   yahooNewsMarinosKeywords: ['マリノス', '横浜FM', '横浜ＦＭ', '横浜F・マリノス', '横浜Ｆ・マリノス'],
@@ -90,6 +96,8 @@ export const CONFIG = {
     newsHeadlines: 5 * 60 * 1000,
     yahooSportsNews: 20 * 60 * 1000,
     xFollowing: 5 * 60 * 1000,
+    // 開票ボード側は payload.mode が live なら liveSeconds、それ以外は regularSeconds で読み直す。
+    elections: 5 * 60 * 1000,
   },
 
   // 来客・外出として拾うタイトルのキーワード（部分一致）。

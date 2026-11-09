@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>参政党 開票ボード</title>
+<link rel="icon" href="data:,">
+<style>
+  /* メイン画面（css/styles.css）と同じ暗色・大きめの文字。開票の夜にモニターで眺める前提。 */
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --edge: #232a34;
+    --text: #e6edf3;
+    --dim: #8b98a5;
+    --faint: #5d6874;
+    --party: #ff9a3d;
+    --party-soft: rgba(255, 154, 61, 0.14);
+    --bar: #4a5562;
+    --win: #e0394f;
+    --live: #ff4d60;
+    --gap: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+    font-size: 17px; line-height: 1.5;
+  }
+  .wrap { max-width: 1600px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: var(--gap); }
+  .num, .mono { font-variant-numeric: tabular-nums; }
+
+  header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 10px; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: .02em; }
+  .meta { color: var(--dim); font-size: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .live { display: inline-flex; align-items: center; gap: 6px; background: var(--live); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .12em; padding: 2px 10px; border-radius: 3px; }
+  .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: blink 1.4s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .live::before { animation: none; } }
+  .error { color: var(--win); }
+  a { color: inherit; }
+
+  .tally { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--edge); border: 1px solid var(--edge); border-radius: 10px; overflow: hidden; }
+  .tally > div { background: var(--panel); padding: 12px 16px; display: grid; gap: 2px; }
+  .tally .lab { font-size: 13px; color: var(--dim); }
+  .tally .big { font-size: 32px; font-weight: 700; line-height: 1.1; }
+  .tally .big b { color: var(--party); }
+  .tally .big small { font-size: 15px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+  .tally .sub { font-size: 13px; color: var(--dim); }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters button { font: inherit; font-size: 14px; padding: 4px 14px; border-radius: 999px; cursor: pointer; border: 1px solid var(--edge); background: var(--panel); color: var(--text); }
+  .filters button[aria-pressed="true"] { background: var(--text); color: var(--bg); }
+  .filters button:focus-visible { outline: 2px solid var(--party); outline-offset: 2px; }
+
+  h2 { margin: 6px 0 0; font-size: 19px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  h2 span { font-size: 13px; color: var(--dim); font-weight: 400; }
+  .empty { color: var(--faint); font-size: 15px; padding: 6px 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: var(--gap); }
+  @media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+  .card-head { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+  .card-head h3 { margin: 0; font-size: 17px; }
+  .card-head .rate { font-size: 13px; color: var(--dim); }
+  .card-head .seats { font-size: 13px; color: var(--dim); white-space: nowrap; }
+  .progress { height: 4px; background: var(--edge); border-radius: 2px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: var(--text); }
+  ol.cands { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+  .cand { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 3px 8px; align-items: center; padding: 3px 6px; border-radius: 4px; }
+  .cand.is-party { background: var(--party-soft); }
+  .rank { font-size: 13px; color: var(--dim); text-align: right; }
+  .who { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+  .who b { font-weight: 700; }
+  .pty { font-size: 12px; color: var(--dim); }
+  .is-party .pty { color: var(--party); font-weight: 700; }
+  .badge { font-size: 12px; font-weight: 700; padding: 0 6px; border-radius: 3px; background: var(--win); color: #fff; }
+  .badge.out { background: transparent; color: var(--faint); border: 1px solid var(--edge); font-weight: 400; }
+  .votes { text-align: right; font-size: 15px; }
+  .votes small { display: block; font-size: 12px; color: var(--dim); }
+  .bar { grid-column: 2 / 4; height: 6px; background: var(--edge); border-radius: 3px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--bar); }
+  .is-party .bar i { background: var(--party); }
+  .cutline { border-top: 1px dashed var(--faint); font-size: 11px; color: var(--faint); text-align: right; line-height: 1.3; }
+  .src { font-size: 12px; color: var(--faint); }
+
+  .prop { background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+  .tbl { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 480px; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid var(--edge); text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-size: 13px; color: var(--dim); font-weight: 400; }
+  tr.is-party td { background: var(--party-soft); }
+  tr.is-party td:first-child { color: var(--party); font-weight: 700; }
+  .dots { display: inline-flex; gap: 3px; flex-wrap: wrap; vertical-align: middle; }
+  td.dots-cell { width: 34%; text-align: left; }
+  .dots i { flex: 0 0 10px; width: 10px; height: 10px; border-radius: 2px; background: var(--bar); }
+  tr.is-party .dots i { background: var(--party); }
+
+  .news { background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 6px 14px; }
+  .news ul { list-style: none; margin: 0; padding: 0; }
+  .news li { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--edge); }
+  .news li:last-child { border-bottom: 0; }
+  .chip { font-size: 12px; padding: 0 6px; border-radius: 3px; border: 1px solid var(--edge); color: var(--dim); white-space: nowrap; }
+  .chip.win { background: var(--win); border-color: var(--win); color: #fff; font-weight: 700; }
+  .chip.loss { color: var(--faint); }
+  .chip.new { border-color: var(--party); color: var(--party); margin-right: 8px; }
+  .news a { text-decoration: none; min-width: 0; overflow-wrap: anywhere; }
+  .news a:hover { text-decoration: underline; }
+  .when { font-size: 13px; color: var(--faint); white-space: nowrap; }
+  footer { font-size: 13px; color: var(--faint); }
+  @media (max-width: 560px) { .news li { grid-template-columns: auto minmax(0, 1fr); } .news .when, .news .level { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>参政党 開票ボード</h1>
+    <div class="meta" aria-live="polite">
+      <span id="live" class="live" hidden>LIVE</span>
+      <span id="updated">読み込み中</span>
+    </div>
+  </header>
+
+  <section id="tally" class="tally" aria-label="参政党の当落集計"></section>
+
+  <div class="filters" role="group" aria-label="表示の絞り込み">
+    <button type="button" id="f-all" data-f="all" aria-pressed="true">すべて</button>
+    <button type="button" id="f-nat" data-f="nat" aria-pressed="false">国政</button>
+    <button type="button" id="f-local" data-f="local" aria-pressed="false">地方</button>
+    <button type="button" id="f-mine" data-f="mine" aria-pressed="false">参政党が出ている区だけ</button>
+  </div>
+
+  <section data-scope="nat">
+    <h2>国政 選挙区 <span>選管の開票結果から得票の多い順。点線より上が定数</span></h2>
+    <div id="districts" class="grid"></div>
+  </section>
+
+  <section data-scope="nat">
+    <h2>国政 比例代表 <span>議席はドント式による見込み</span></h2>
+    <div id="proportional" class="grid"></div>
+  </section>
+
+  <section data-scope="local">
+    <h2>地方選・ニュース <span>見出しからの自動分類（確定値ではない）</span></h2>
+    <div class="news"><ul id="news"></ul></div>
+  </section>
+
+  <footer id="footer">確定の当落は各選挙管理委員会の公表で確かめてください。</footer>
+</div>
+<script type="module" src="elections.js?v=20261109-elections"></script>
+</body>
+</html>

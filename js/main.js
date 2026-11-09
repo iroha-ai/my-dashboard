@@ -1,15 +1,16 @@
 // ?v= はこのファイルだけでなく、js/*.js の import すべてで同じ値に揃えること
 // （js/calendar.js の冒頭コメント参照。付け忘れると古いキャッシュを掴んで落ちる）。
-import { CONFIG } from './config.js?v=20260905-ai-usage-windows';
-import { startAiUsage } from './ai-usage.js?v=20260905-ai-usage-windows';
-import { startClock } from './clock.js?v=20260905-ai-usage-windows';
-import { updateCalendar } from './calendar.js?v=20260905-ai-usage-windows';
-import { updateTrain } from './train.js?v=20260905-ai-usage-windows';
-import { updateWeather } from './weather.js?v=20260905-ai-usage-windows';
-import { updateNewsDigest } from './news.js?v=20260905-ai-usage-windows';
-import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20260905-ai-usage-windows';
-import { updateXFollowing } from './x-following.js?v=20260905-ai-usage-windows';
-import { clear, el, runPeriodically } from './util.js?v=20260905-ai-usage-windows';
+import { CONFIG } from './config.js?v=20261109-elections';
+import { startAiUsage } from './ai-usage.js?v=20261109-elections';
+import { startClock } from './clock.js?v=20261109-elections';
+import { updateCalendar } from './calendar.js?v=20261109-elections';
+import { updateTrain } from './train.js?v=20261109-elections';
+import { updateWeather } from './weather.js?v=20261109-elections';
+import { updateNewsDigest } from './news.js?v=20261109-elections';
+import { updateYahooSportsNews } from './yahoo-sports-news.js?v=20261109-elections';
+import { updateXFollowing } from './x-following.js?v=20261109-elections';
+import { updateElectionStatus } from './elections-status.js?v=20261109-elections';
+import { clear, el, runPeriodically } from './util.js?v=20261109-elections';
 
 // 何かが取れていないとき、常時表示だと気づけない。
 // ヘッダー右端にだけ、短く出す。
@@ -67,6 +68,7 @@ const FAILURE_LABELS = {
   news: '定時ニュースの更新に失敗',
   yahooSportsNews: 'サッカー・モータースポーツニュースの更新に失敗',
   xFollowing: 'X投稿の更新に失敗',
+  elections: '開票データの更新に失敗',
 };
 
 // runPeriodically は例外を console.error するだけなので、想定外の例外が出ると
@@ -117,3 +119,7 @@ runPeriodically(async () => {
 runPeriodically(async () => {
   await updateAndStamp('xFollowing', updateXFollowing);
 }, CONFIG.intervals.xFollowing);
+
+runPeriodically(async () => {
+  await updateAndStamp('elections', updateElectionStatus);
+}, CONFIG.intervals.elections);

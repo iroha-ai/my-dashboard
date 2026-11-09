@@ -1,5 +1,5 @@
-import { CONFIG } from './config.js?v=20260905-ai-usage';
-import { fetchJson } from './util.js?v=20260905-ai-usage';
+import { CONFIG } from './config.js?v=20261109-elections';
+import { fetchJson } from './util.js?v=20261109-elections';
 
 // 運行情報。詳しい文言は出さず、該当路線のリンクの色を変えるだけにしている
 // （Hideの要望: 「アラートを受信したら、リンクの色を変えるだけでいい。
