@@ -217,7 +217,7 @@ python3 -m http.server 8000
 - 時計（`js/clock.js`）は `new Date()` のブラウザ／OSローカル時刻をそのまま使っている。
   明示的に `Asia/Tokyo` を指定していないため、モニターPCのタイムゾーン設定に依存する
 - **運行情報のデータ源は路線によって異なる。**
-  - 銀座線: `https://www.tokyometro.jp/library/common/operation/status.json`（JSONP）。
+  - 銀座線: `https://www.tokyometro.jp/library/common/operation/status.json`（JSON。旧JSONPにも対応）。
     東京メトロが自社サイトの表示に使っている内部JSONを直接読む方式
     （`scripts/fetch-train.mjs`）。GitHub Actionsからも問題なく取得できている
   - 中央線・青梅線: **2026-08-08〜、ジョルダンの運行情報メールをGmail監視する方式に
@@ -237,3 +237,7 @@ python3 -m http.server 8000
     `trainMailDataUrl`を空文字にするか、`js/train.js`の`updateTrain`から
     該当ソースの取得を外せば、中央線・青梅線のリンクは（色が付かないだけの）
     静的リンク表示に戻る
+
+### 運行情報パーサーの回帰テスト
+
+`node scripts/test-fetch-train.mjs` で、JSON・旧JSONPと取得失敗時の安全側の挙動を確認できる。

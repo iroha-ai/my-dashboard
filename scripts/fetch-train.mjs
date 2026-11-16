@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { pathToFileURL } from 'node:url';
+
 // GitHub Actions から定期的に走らせ、運行情報の簡易ステータスJSONを書き出す。
 // 「異常があるかどうか」だけを検知し、フロント側で該当路線リンクの色を
 // 変えるために使う（詳しい文言は出さず、色だけ。詳細は公式ページへ）。
@@ -15,8 +17,8 @@
 // Hide了承済み。HANDOFF.md参照）:
 //
 //   銀座線: https://www.tokyometro.jp/library/common/operation/status.json
-//     東京メトロの公式トップページが読み込んでいるJSONP
-//     （operate_status_cb_func(...)）。jp.lines[] を返す。
+//     東京メトロの公式トップページが読み込んでいるJSON。旧JSONP形式にも対応。
+//     jp.lines[] を返す。
 //
 // 【2026-08-12 変更】異常判定を、中央線・青梅線（gas/train-status-watcher.gs）と
 // 同じ「キーワード一致」方式に揃えた。以前は jp.lines[].status_icon が "heijou" か
@@ -63,15 +65,20 @@ async function getText(url) {
   return res.text();
 }
 
-async function fetchMetroGinza() {
-  const text = await getText('https://www.tokyometro.jp/library/common/operation/status.json');
-  // JSONP（例: operate_status_cb_func({...})）の皮を剥ぐ。
-  const m = text.match(/^\s*[\w$]+\(([\s\S]*)\)\s*;?\s*$/);
-  if (!m) throw new Error('JSONPの形式が想定と違う');
-  const data = JSON.parse(m[1]);
-  const line = data?.jp?.lines?.find((l) => l.name_alpha === 'ginza');
+export function parseMetroGinza(text) {
+  // 現行の純粋なJSONと従来のJSONPを扱う。コードとして評価しない。
+  const source = text.trim();
+  const m = source.match(/^operate_status_cb_func\(\s*([\s\S]*)\)\s*;?$/);
+  const data = JSON.parse(m ? m[1] : source);
+  const lines = data?.jp?.lines;
+  if (!Array.isArray(lines)) throw new Error('東京メトロの路線データ形式が想定と違う');
+  const line = lines.find((l) => l?.name_alpha === 'ginza');
   if (!line) throw new Error('銀座線のデータが見つからない');
   return line;
+}
+
+async function fetchMetroGinza() {
+  return parseMetroGinza(await getText('https://www.tokyometro.jp/library/common/operation/status.json'));
 }
 
 async function main() {
@@ -114,7 +121,10 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// テストからのimport時は通信しない。
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
